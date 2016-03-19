@@ -198,7 +198,7 @@ object are zero-initialised at the start and hence the value of any field will b
 If C++ allowed similar behaviour it would be very hard to avoid undefined behaviour as the fields in the derived
 object would be uninitialised (and typically unspecified) before their initialisation occurred.
 
-## C\#
+## C&#35;
 
 The initialisation of objects in C# is, unsurprisingly, a lot like that in Java but there are still a couple
 of interesting differences that can trap the unwary.
