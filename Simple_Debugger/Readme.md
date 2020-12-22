@@ -1,6 +1,6 @@
-= Using the Windows Debugging API =
+# Using the Windows Debugging API #
 
-== Introduction
+## Introduction
 A significant amount of most programmers' time is spent in debugging. Wikipedia defines this activity as: "a methodical process of finding and reducing the number of bugs, or defects, in a computer program or a piece of electronic hardware, thus making it behave as expected."
 
 There are many different (overlapping) _ways_ to debug; but one of the commonest is to use an interactive debugger. There are a large number of different kinds of interactive debuggers, such as hardware probes for testing new hardware or emulators for embedded software components, but most programmers probably think of debugging an application running on a desktop operating system. However even on a desktop operating system you may have:
@@ -29,7 +29,7 @@ This article focuses on the Windows application debugging API that is used by th
 
 (I hope to produce a subsequent article doing something similar with the Unix debug API which will provide a contrasting mechanism for achieving a similar end on a different operating system.)
 
-== What's in the Win32 debugging API?
+## What's in the Win32 debugging API?
 
 The two main methods in the Win32 debug interface are `WaitForDebugEvent` and `ContinueDebugEvent`. These provide the mechanism for the debugger to be notified of debug events from the process being debugged and to resume the target process once the event has been processed.
 
@@ -46,7 +46,7 @@ In each case the event provides some additional data with the event to give the 
 
 Note that several different things are included in the category of "exception" -- such as access violations, software generated errors and break points (used in a full-scale debugger to add support for stepping through a program).
 
-== What is missing?
+## What is missing?
 
 The Windows debug API is solely concerned with the debug events and does not of itself provide any other access to the target process. (Note that this is very different from the ptrace interface used in most of the Unix world.)
 
@@ -54,13 +54,13 @@ All other access to the target process is achieved using general purpose functio
 
 This has the advantage that much of the functionality of a debugger does not require the specific debugger-debuggee relationship between the processes and so a variety of tools can be written to provide specific functionality, such as visualising a program's data structures or giving a stack dump of all the active threads. The Microsoft debugger WinDbg (included in "Debugging Tools for Windows" freely available from  "http://www.microsoft.com/whdc/DevTools/Debugging/default.mspx") has a "non-invasive" attach mode that demonstrates just how much debugging you can do _without _the debug API.
 
-== Interpreting symbolic information
+## Interpreting symbolic information
 
 The main method used by Microsoft for attaching symbolic information to executable files is the PDB ("program database)" format. I wrote an earlier article (for [Overload 67](http://accu.org/index.php/journals/276) giving an introduction to the Microsoft symbol engine and I've used the code from that article (slightly expanded) to help provide symbolic information in this example program. I'm not going to go into further details of the symbol engine implementation, apart from a note about the getString method (under "DLL load and unload" below).
 
 In the example code below the field `eng` refers to this symbol engine and the methods from it used below include `loadModule` (loads the debug information for a module), `addressToString` (converts a target address into a symbolic string) and `stackTrace` (prints the call stack).
 
-== ProcessTracer
+## ProcessTracer
 
 I am going to use a program that traces major events in a program's lifecycle to provide the framework for exploring the Windows Debug API. Here is an example of the program in use (paths edited for clarity):
 
@@ -100,7 +100,7 @@ d\nowidctlpar   0x0012FF94  0x75C11194 BaseThreadInitThunk + 18
   0x0012FFD4  0x7728B3F5 RtlInitializeExceptionChain + 99
   0x0012FFEC  0x7728B3C8 RtlInitializeExceptionChain + 54
 ```
-== Getting started
+## Getting started
 
 The first step is to create the child process (BadProgram.exe) with the correct flags. This is the relevant call to `CreateProcess`:
 ```
@@ -114,7 +114,7 @@ One of the things I find confusing about the debug API is remembering which hand
 
 The debug API is designed to support debugging multiple processes; to achieve this you should pass the `DEBUG_PROCESS` flag to CreateProcess. I've not done that in this example program as implementing a debugger that correctly manages multiple child processes would make the code significantly more complex without really adding much new material.
 
-== The heart of the matter
+## The heart of the matter
 
 The main driving loop of ProcessTracer is the "debug loop", which looks like this:
 
@@ -150,7 +150,7 @@ The first call halts the debugger until the next event is ready from the debugge
 
 This synchronous call-based mechanism of passing events between the debuggee and the debugger makes it slightly tricky to write an interactive debugger since the debugger has to be responsive to user actions via the GUI and also wait for debug events from the target process. This normally means the debug loop runs in its own dedicated thread, decoupling it from the user interface.  However in the ProcessTracer example there is no UI and so the implementation can be a simple single threaded application.
 
-== Process start and stop
+## Process start and stop
 
 The first event you receive is a CREATE_PROCESS_DEBUG_EVENT. The code in the debug loop in ProcessTracer is:
 
@@ -197,7 +197,7 @@ In this simple case the file handle will be provided as we create the child proc
 
 When the process ends the EXIT_PROCESS_DEBUG_EVENT is generated as the last debug event; the process handle is then closed by the debug API. In ProcessTracer we log the event, print a stack trace using the symbol engine and then set `completed` to `true` to terminate the debug loop.
 
-== Thread start and stop
+## Thread start and stop
 
 The process start event implicitly includes a thread start event of the main application thread (and the process exit event implicitly includes a thread exit event for the last thread closed). On the creation of additional threads a separate event is raised, containing the start address and thread handle for the newly created thread.
 
@@ -217,7 +217,7 @@ void ProcessTracer::OnCreateThread(DWORD threadId, CREATE_THREAD_DEBUG_INFO cons
 When a thread exits the associated data includes the exit code for the thread; in process tracer we simply log this and print a stack trace using the symbol engine.
 We also remove the thread handle from the map since the debug API closes the thread handle for us on the next call to `ContinueDebugEvent`.
 
-== DLL load and unload
+## DLL load and unload
 
 As a DLL is loaded into the target process a debug event is generated containing, among other things, a file handle and a pointer to the file name of the DLL (in the target address space).
 The file name is usually a fully qualified path, but the *first *DLL loaded (which is always `ntdll`) has a path-less file name simply consisting of 'ntdll.dll'. If you need the full file name you can use the fact that *all* Win32 processes load ntdll.dll from the same location and so obtain the full file name by using `GetModuleFileName` on the _debugger_ process.
@@ -249,7 +249,7 @@ Note that closing the file handle is, once again, our responsibility.
 Similarly the unload DLL event is handled by logging the event and calling 
 `eng.unloadModule(unloadDll.lpBaseOfDll)`.
 
-== How long is a NUL terminated string?
+## How long is a NUL terminated string?
 
 One slight twist I will mention in getString is that, since the string is NUL terminated, we don't know how long the string is until we have read it. The naive implementation of just trying to read MAX_PATH characters sometimes fails since the string being read is near a page boundary. It is a shame that the debug API doesn't report the string length too.
 
@@ -257,11 +257,11 @@ The error code reported by calling `GetLastError` on a failed call to `ReadProce
 
 My solution is to first try and read the entire MAX_PATH buffer from the target, as this is usually successful. Should this fail I reduce the number of bytes read to the next lowest page boundary.
 
-== OutputDebugString events
+## OutputDebugString events
 
 Windows provides the `OutputDebugString` function specifically to send a string to the debugger for display.  A debug event is generated when the target process calls this function and the associated debug information provides the buffer address -- and length -- so reading the data from the target and displaying it is very easy.
 
-== Exceptions
+## Exceptions
 
 These are probably the most interesting debug events and there is a lot of processing that can be done here.  The debug API allows the debugger a *first* chance to look at the exception and, if neither the debugger nor the debuggee handles the exception, a *last* chance to look at the unhandled exception before terminating the process.
 
@@ -317,7 +317,7 @@ void ProcessTracer::OnException(DWORD threadId,
 ```
 The event data contains the code for the exception and the address where the exception occurred. Some exceptions also include additional information describing the exception; for example `EXCEPTION_ACCESS_VIOLATION` indicates the access mode that failed (read, write, execute) in the first entry of the exception information and the address of the inaccessible data in the second entry.
 
-== Changes in the debugged process
+## Changes in the debugged process
 
 When a process is running under the debug API several things are different. It is important to be aware of these as behaviour that is different under the debugger is hard to debug!
 
@@ -335,7 +335,7 @@ Finally the action of the debugger changes the runtime behaviour of the process 
 
 There are two API calls that can be used to check if a process is being debugged: CheckRemoteDebuggerPresent (which checks the presence of a debug connection from another process) and IsBeingDebugged (which reads the value of the `BeingDebugged` flag located at byte offset 2 in the Process Environment Block). 
 
-== Attaching to existing processes
+## Attaching to existing processes
 
 The debug API can also be used to attach to an already running process by using `DebugActiveProcess`.
 Most of the debug events described above are exactly the same in this case; the biggest change is that when the process start and DLL load events are generated the file handle and file name are usually both zero. However the `GetModuleFileNameEx` function in the Windows 'Process Status' library (PSAPI) can be used to get the file name in this case (unfortunately this method *only* works when attaching to an existing process).
@@ -344,11 +344,11 @@ Additionally in order to debug a process with different credentials you may need
 
 Finally a debugger can detach from a debuggee by using `DebugActiveProcessStop`.
 
-== Writing a fully fledged interactive debugger
+## Writing a fully fledged interactive debugger
 
 I haven't covered more than the basics of a debugger and there is obviously a lot more that must be added to write a proper interactive debugger. However I hope that the overview of the debug API that I have presented here has given you some understanding of the bare bones of the interaction between the debugger and the target.
 
-== Acknowledgements
+## Acknowledgements
 
 *Many thanks to Lee Benfield and Baris Acar for reviewing this article and providing numerous useful suggestions for improvement.*
 
