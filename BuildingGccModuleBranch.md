@@ -147,6 +147,3 @@ Building gcc can seem difficult, but I hope this worked example encourages some 
 <hr>
 Copyright (c) Roger Orr 2020-11-28 20:35:22Z
 First published in Overload, Dec 2020
-
-}
- 
