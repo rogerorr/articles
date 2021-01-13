@@ -4,7 +4,7 @@
 
 LONG WINAPI cleanExit(EXCEPTION_POINTERS *exceptionInfo)
 {
-  printf("Exception %p\n", exceptionInfo->ExceptionRecord->ExceptionCode);
+  printf("Exception 0x%8.8x\n", exceptionInfo->ExceptionRecord->ExceptionCode);
   exit(0);
 }
 

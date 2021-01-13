@@ -77,9 +77,9 @@ SimpleSymbolEngine::SimpleSymbolEngine()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-void SimpleSymbolEngine::init(HANDLE hProcess)
+void SimpleSymbolEngine::init(HANDLE process)
 {
-  this->hProcess = hProcess;
+  this->hProcess = process;
   ::SymInitialize(hProcess, 0, false);
 }
 
