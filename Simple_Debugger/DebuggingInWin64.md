@@ -445,5 +445,5 @@ The debugging API provides one way of looking at some of the implementation deta
 The full source code for this article can be found at https://github.com/rogerorr/articles/tree/master/Simple_Debugger
 
 <hr>
-Copyright (c) Roger Orr 2020-07-05 (First published in CVu Nov 2011)
+Copyright (c) Roger Orr 2021-07-05 (First published in CVu Jan 2012)
  
