@@ -7,7 +7,7 @@ DESCRIPTION
   This is demonstration code only - it is non. thread-safe and single instance.
 
 COPYRIGHT
-  Copyright (C) 2004, 2011 by Roger Orr <rogero@howzatt.co.uk>
+  Copyright (C) 2004, 2021 by Roger Orr <rogero@howzatt.co.uk>
 
   This software is distributed in the hope that it will be useful, but
   without WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,10 +35,11 @@ COPYRIGHT
 #include <vector>
 
 #include <dbghelp.h>
+#include <psapi.h> // GetModuleFileNameEx
 
 #pragma comment( lib, "dbghelp" )
 
-static char const szRCSID[] = "$Id: SimpleSymbolEngine.cpp 256 2020-04-09 21:35:25Z Roger $";
+static char const szRCSID[] = "$Id: SimpleSymbolEngine.cpp 295 2021-07-05 13:02:27Z roger $";
 
 namespace
 {
@@ -50,7 +51,7 @@ namespace
     SIZE_T length = maxSize;
     while (length >= minSize)
     {
-      if ( ReadProcessMemory(hProcess, address, buffer, length, 0) )
+      if (ReadProcessMemory(hProcess, address, buffer, length, 0))
       {
         return length;
       }
@@ -66,6 +67,31 @@ namespace
     }
     return 0;
   }
+
+  // We pass 'false' as the fInvadeProcess argument to SymInitialize (for performance)
+  // and therefore need to call SymLoadModule64 when necessary
+  DWORD64 GetModuleBaseWrapper(HANDLE hProcess, DWORD64 address)
+  {
+     DWORD64 result = SymGetModuleBase64(hProcess, address);
+     if (!result)
+     {
+       // Verify a address (invalid addresses can cause AV in some dbgHelp versions)
+       MEMORY_BASIC_INFORMATION mbInfo;
+       if (::VirtualQueryEx( hProcess, (PVOID)address, &mbInfo, sizeof(mbInfo)) &&
+         ((mbInfo.State & MEM_FREE) == 0))
+       {
+         const DWORD64 baseAddress = (DWORD64)mbInfo.AllocationBase;
+         const HMODULE hmod = (HMODULE)mbInfo.AllocationBase;
+
+         char szFileName[MAX_PATH + 1] = "";
+         if (GetModuleFileNameEx(hProcess, hmod, szFileName, MAX_PATH))
+         {
+           result = ::SymLoadModuleEx(hProcess, NULL, szFileName, NULL, baseAddress, 0, NULL, 0);
+         }
+       }
+     }
+     return result;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +103,9 @@ SimpleSymbolEngine::SimpleSymbolEngine()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-void SimpleSymbolEngine::init(HANDLE process)
+void SimpleSymbolEngine::init(HANDLE hTargetProcess)
 {
-  this->hProcess = process;
+  this->hProcess = hTargetProcess;
   ::SymInitialize(hProcess, 0, false);
 }
 
@@ -154,12 +180,15 @@ void SimpleSymbolEngine::unloadModule(PVOID baseAddress)
 void SimpleSymbolEngine::stackTrace(HANDLE hThread, std::ostream & os )
 {
   CONTEXT context = {0};
-  context.ContextFlags = CONTEXT_FULL;
-  GetThreadContext(hThread, &context);
+  PVOID pContext = &context;
 
   STACKFRAME64 stackFrame = {0};
 
 #ifdef _M_IX86
+  DWORD const machineType = IMAGE_FILE_MACHINE_I386;
+  context.ContextFlags = CONTEXT_FULL;
+  GetThreadContext(hThread, &context);
+
   stackFrame.AddrPC.Offset = context.Eip;
   stackFrame.AddrPC.Mode = AddrModeFlat;
 
@@ -168,46 +197,69 @@ void SimpleSymbolEngine::stackTrace(HANDLE hThread, std::ostream & os )
 
   stackFrame.AddrStack.Offset = context.Esp;
   stackFrame.AddrStack.Mode = AddrModeFlat;
-#elif _M_AMD64
-  stackFrame.AddrPC.Offset = context.Rip;
-  stackFrame.AddrPC.Mode = AddrModeFlat;
+  os << "  Frame       Code address\n";
+#elif _M_X64
+  DWORD machineType;
 
-  stackFrame.AddrFrame.Offset = context.Rbp;
-  stackFrame.AddrFrame.Mode = AddrModeFlat;
+  BOOL bWow64(false);
+  WOW64_CONTEXT wow64_context = {0};
+  IsWow64Process(hProcess, &bWow64);
+  if (bWow64)
+  {
+    machineType = IMAGE_FILE_MACHINE_I386;
+    wow64_context.ContextFlags = WOW64_CONTEXT_FULL;
+    Wow64GetThreadContext(hThread, &wow64_context);
+    pContext = &wow64_context;
+    stackFrame.AddrPC.Offset = wow64_context.Eip;
+    stackFrame.AddrPC.Mode = AddrModeFlat;
 
-  stackFrame.AddrStack.Offset = context.Rsp;
-  stackFrame.AddrStack.Mode = AddrModeFlat;
-#elif _M_IA64
-  stackFrame.AddrPC.Offset = context.StIIP;
-  stackFrame.AddrPC.Mode = AddrModeFlat;
+    stackFrame.AddrFrame.Offset = wow64_context.Ebp;
+    stackFrame.AddrFrame.Mode = AddrModeFlat;
 
-  stackFrame.AddrFrame.Offset = context.RsBSP;
-  stackFrame.AddrFrame.Mode = AddrModeFlat;
+    stackFrame.AddrStack.Offset = wow64_context.Esp;
+    stackFrame.AddrStack.Mode = AddrModeFlat;
+  }
+  else
+  {
+    machineType = IMAGE_FILE_MACHINE_AMD64;
+    context.ContextFlags = CONTEXT_FULL;
+    GetThreadContext(hThread, &context);
 
-  stackFrame.AddrStack.Offset = context.IntSp;
-  stackFrame.AddrStack.Mode = AddrModeFlat;
+    stackFrame.AddrPC.Offset = context.Rip;
+    stackFrame.AddrPC.Mode = AddrModeFlat;
 
-  stackFrame.AddrBStore.Offset = context.RsBSP;
-  stackFrame.AddrBStore.Mode = AddrModeFlat;
+    stackFrame.AddrFrame.Offset = context.Rbp;
+    stackFrame.AddrFrame.Mode = AddrModeFlat;
+
+    stackFrame.AddrStack.Offset = context.Rsp;
+    stackFrame.AddrStack.Mode = AddrModeFlat;
+  }
+  os << "  Frame               Code address\n";
 #else
 #error Unsupported target platform
 #endif // _M_IX86
+
   DWORD64 lastBp = 0; // Prevent loops with optimised stackframes
 
-  os << "  Frame       Code address\n";
-  while (::StackWalk64(
-#ifdef _M_IX86
-IMAGE_FILE_MACHINE_I386,
-#elif _M_AMD64
-IMAGE_FILE_MACHINE_AMD64,
-#elif _M_IA64
-IMAGE_FILE_MACHINE_IA64,
-#endif
+  // Need this despite passing into StackWalk64
+  GetModuleBaseWrapper(hProcess, stackFrame.AddrPC.Offset);
+  
+  while (::StackWalk64(machineType,
     hProcess, hThread,
-    &stackFrame, &context,
-    0, ::SymFunctionTableAccess64, ::SymGetModuleBase64, 0))
+    &stackFrame, pContext,
+    0, ::SymFunctionTableAccess64, GetModuleBaseWrapper, 0))
   {
-    os << "  0x" << reinterpret_cast<PVOID>(stackFrame.AddrFrame.Offset) << "  " << addressToString(reinterpret_cast<PVOID>(stackFrame.AddrPC.Offset)) << "\n";
+    if (stackFrame.AddrPC.Offset == 0)
+    {
+      os << "Null address\n";
+      break;
+    }
+    // Need this despite passing into StackWalk64
+    GetModuleBaseWrapper(hProcess, stackFrame.AddrPC.Offset);
+  
+    PVOID frame = reinterpret_cast<PVOID>(stackFrame.AddrFrame.Offset);
+    PVOID pc = reinterpret_cast<PVOID>(stackFrame.AddrPC.Offset);
+    os << "  0x" << frame << "  " << addressToString(pc) << "\n";
     if (lastBp >= stackFrame.AddrFrame.Offset)
     {
       os << "Stack frame out of sequence...\n";

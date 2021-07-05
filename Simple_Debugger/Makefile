@@ -1,31 +1,54 @@
 # Makefile for ProcessTracer
 
-all : ProcessTracer.exe BadProgram.exe CloseHandle.exe UnhandledExceptionFilter.exe
+!if "$(PLATFORM)" == ""
+PLATFORM=x86
+!endif
+
+all : $(PLATFORM) $(PLATFORM)\ProcessTracer.exe $(PLATFORM)\TrivialProgram.exe $(PLATFORM)\BadProgram.exe $(PLATFORM)\TestSimpleSymbolEngine.exe
 
 clean :
-	@-del *.obj *.exe *.exe.manifest *.ilk *.pdb
+	@-del /s/q ProcessTracer.zip $(PLATFORM)\*
+
+zip :
+	if not exist ProcessTracer\* mkdir ProcessTracer
+	del ProcessTracer\* /q
+	del ProcessTracer.zip
+	copy BadProgram.cpp ProcessTracer\*
+	copy Makefile ProcessTracer\*
+	copy ProcessTracer.cpp ProcessTracer\*
+	copy SimpleSymbolEngine.cpp ProcessTracer\*
+	copy SimpleSymbolEngine.h ProcessTracer\*
+	copy TrivialProgram.cpp ProcessTracer\*
+	zip ProcessTracer.zip ProcessTracer/*
 
 # Rules
 
-.cpp.obj::
-	cl /nologo /c /Zi /EHsc /GR /MD /W4 $<
+$(PLATFORM) :
+	md $(PLATFORM)
 
-ProcessTracer.exe : $(*B).obj
-	cl /nologo /Zi $**
+.cpp{$(PLATFORM)}.obj::
+	cl /nologo /Fo$(PLATFORM)\ /c /Zi /EHsc /GR /MD /W4 $<
 
-BadProgram.exe : $(*B).obj 
-	cl /nologo /Zi $**
+$(PLATFORM)\ProcessTracer.exe : $(PLATFORM)\$(*B).obj
+	cl /nologo /Fe$@ /Zi $**
 
-CloseHandle.exe : $(*B).obj 
-	cl /nologo /Zi $**
+$(PLATFORM)\TrivialProgram.exe : $(PLATFORM)\$(*B).obj 
+	cl /nologo /Fe$@ $** 
 
-UnhandledExceptionFilter.exe : $(*B).obj 
-	cl /nologo /Zi $**
+$(PLATFORM)\BadProgram.exe : $(PLATFORM)\$(*B).obj 
+	cl /nologo /Fe$@ /Zi $**
+
+$(PLATFORM)\TestSimpleSymbolEngine.exe : $(PLATFORM)\$(*B).obj
+	cl /nologo /Fe$@ /Zi $**
 
 # Dependencies
 
-ProcessTracer.obj : SimpleSymbolEngine.h
+$(PLATFORM)\ProcessTracer.obj : SimpleSymbolEngine.h
 
-SimpleSymbolEngine.obj : SimpleSymbolEngine.h
+$(PLATFORM)\SimpleSymbolEngine.obj : SimpleSymbolEngine.h
 
-ProcessTracer.exe : SimpleSymbolEngine.obj
+$(PLATFORM)\TestSimpleSymbolEngine.obj : SimpleSymbolEngine.h
+
+$(PLATFORM)\ProcessTracer.exe : $(PLATFORM)\SimpleSymbolEngine.obj
+
+$(PLATFORM)\TestSimpleSymbolEngine.exe : $(PLATFORM)\SimpleSymbolEngine.obj

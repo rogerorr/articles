@@ -24,10 +24,16 @@ COPYRIGHT
 
 static char const szRCSID[] = "$Id: ProcessTracer.cpp 256 2020-04-09 21:35:25Z Roger $";
 
+#ifdef _M_X64
+#include <ntstatus.h>
+#define WIN32_NO_STATUS
+#endif // _M_X64
+
 #include <windows.h>
 
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 
 #include "SimpleSymbolEngine.h"
@@ -121,10 +127,16 @@ void ProcessTracer::run()
         // First exception is special
         attached = true;
       }
+#ifdef _M_X64
+      else if (DebugEvent.u.Exception.ExceptionRecord.ExceptionCode == STATUS_WX86_BREAKPOINT)
+      {
+        std::cout << "WOW64 initialised" << std::endl;
+      }
+#endif // _M_X64
       else
       {
         OnException(DebugEvent.dwThreadId, DebugEvent.u.Exception.dwFirstChance, DebugEvent.u.Exception.ExceptionRecord);
-        continueFlag = DBG_EXCEPTION_NOT_HANDLED;
+        continueFlag = (DWORD)DBG_EXCEPTION_NOT_HANDLED;
       }
       break;
 
@@ -273,7 +285,9 @@ void CreateProcess(char ** begin, char ** end)
      DEBUG_ONLY_THIS_PROCESS,
      0, 0, &startupInfo, &ProcessInformation) )
   {
-    throw std::runtime_error(std::string("Unable to start ") + *begin);
+    std::ostringstream oss;
+    oss << GetLastError();
+    throw std::runtime_error(std::string("Unable to start ") + *begin + ": " + oss.str());
   }
 
   CloseHandle( ProcessInformation.hProcess );
