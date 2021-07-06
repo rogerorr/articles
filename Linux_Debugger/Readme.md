@@ -368,7 +368,7 @@ function code to read the register values for the target process. We then have t
 *which* register will contain the return code we are we looking at? The documentation for each hardware platform includes a section
 on calling conventions and the system calling convention gives us the information we are looking for.
 
-**System call conventions on x86 and x64
+## System call conventions on x86 and x64
 
 The Linux convention on Intel x86 hardware is to use the `eax` register for the system call number on entry and the return code on
 exit. The arguments to the system call (up to six arguments depending on the call) are passed in `ebx`, `ecx`, `edx`, `esi`, `edi`
@@ -410,7 +410,7 @@ For the x64 API the `rax` register replaces the `eax` register and the system ca
 The process tracer program in this article is interested in just two system calls: `open` and `close`. The corresponding system call
 numbers are `__NR_open` and `__NR_close`.
 The close call takes a single argument, the file handle to close, and so displaying this is easy. The `open` call is more complicated
-as we are interested in the first argument ("`const char * *path\i0`") and this argument is the **address** of the character string.
+as we are interested in the first argument ("`const char *path`") and this argument is the **address** of the character string.
 
 The return code from the system call is negative on error and the error code is the negation of this number. It can be displayed as a
 text string by using the standard `strerror()` function. (This is a slight simplification: only 'small' negative numbers indicate an error.)
