@@ -52,7 +52,7 @@ The Windows debug API is solely concerned with the debug events and does not of 
 
 All other access to the target process is achieved using general purpose functions that are not restricted to a debugger; given suitable permissions *any* process can use these functions. So for example the debugger can use the functions `ReadProcessMemory` and `WriteProcessMemory` to read or write memory in the target process and `GetThreadContex`t to read the process registers for a thread.
 
-This has the advantage that much of the functionality of a debugger does not require the specific debugger-debuggee relationship between the processes and so a variety of tools can be written to provide specific functionality, such as visualising a program's data structures or giving a stack dump of all the active threads. The Microsoft debugger WinDbg (included in "Debugging Tools for Windows" freely available from  "http://www.microsoft.com/whdc/DevTools/Debugging/default.mspx") has a "non-invasive" attach mode that demonstrates just how much debugging you can do _without _the debug API.
+This has the advantage that much of the functionality of a debugger does not require the specific debugger-debuggee relationship between the processes and so a variety of tools can be written to provide specific functionality, such as visualising a program's data structures or giving a stack dump of all the active threads. The Microsoft debugger WinDbg (included in "Debugging Tools for Windows" freely available from "https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/") has a "non-invasive" attach mode that demonstrates just how much debugging you can do _without _the debug API.
 
 ## Interpreting symbolic information
 
