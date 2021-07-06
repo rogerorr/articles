@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In a previous article "[../Simple_Debugger/Readme.md](Using the Windows Debugging API)" I wrote about the Windows debugging API 
+In a previous article "[Using the Windows Debugging API](../Simple_Debugger/Readme.md)" I wrote about the Windows debugging API 
 and promised to write a future article about the Unix debug API. Here is that article: slightly later than anticipated.
 
 Many programmers spend a significant amount of time using debuggers but in my experience few of them have much understanding of 
