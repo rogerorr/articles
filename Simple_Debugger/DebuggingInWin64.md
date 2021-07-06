@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In March this year I wrote an article in CVu about the Windows application debugging API and I illustrated the basic operation of the API
+In March this year I wrote an article in CVu "[Using the Windows Debugging API](Readme.md)" and I illustrated the basic operation of the API
 with a simple process tracing application. This showed such events as the loading of DLLs, the starting and ending of threads and any exceptions.
 
 This article uses the experience of porting the program to 64-bit Windows to provide a brief introduction to some of the issues of
@@ -95,11 +95,11 @@ When compiled and linked this produces a very small executable with no dependenc
 Here is the output from running the 32-bit version of ProcessTracer from the previous article on 32-bit Windows 7:
 
 ```
-C:> x86\\ProcessTracer x86\\TrivialProgram.exe
+C:> x86\ProcessTracer x86\TrivialProgram.exe
 CREATE PROCESS 3896 at 0x001D1010
 LOAD DLL 77340000 ntdll.dll
-LOAD DLL 75900000 C:\\Windows\\system32\\kernel32.dll
-LOAD DLL 75670000 C:\\Windows\\system32\\KERNELBASE.dll
+LOAD DLL 75900000 C:\Windows\system32\kernel32.dll
+LOAD DLL 75670000 C:\Windows\system32\KERNELBASE.dll
 EXIT PROCESS 0
   Frame       Code address
   0x003EF994  0x773870B4 KiFastSystemCallRet
@@ -112,11 +112,11 @@ The obvious change we will see when running the 64-bit program is that the addre
  than 32-bit ones. The output for the equivalent 64-bit program is:
 
 ```
-C:> x64\\ProcessTracer x64\\TrivialProgram.exe
+C:> x64\ProcessTracer x64\TrivialProgram.exe
 CREATE PROCESS 4692 at 0x000000013FE91010
 LOAD DLL 0000000077C90000 ntdll.dll
-LOAD DLL 0000000077700000 C:\\Windows\\system32\\kernel32.dll
-LOAD DLL 000007FEFE3D0000 C:\\Windows\\system32\\KERNELBASE.dll
+LOAD DLL 0000000077700000 C:\Windows\system32\kernel32.dll
+LOAD DLL 000007FEFE3D0000 C:\Windows\system32\KERNELBASE.dll
 EXIT PROCESS 0
   Frame       Code address
   0x00000000001DF720  0x0000000077CE15DA NtTerminateProcess + 10
@@ -140,7 +140,7 @@ provide an environment that is as close as possible to the 32-bit version of the
 user mode and maps the 32-bit calls to the operating system kernel into an equivalent 64-bit call. This is normally almost invisible
  to the calling program, but the debugging API exposes some of the scaffolding as shall see.
 
-Windows provides a set of 64-bit DLLs in `%windir%\\system32` and an equivalent set of 32-bit DLLs in `%windir%\\syswow64`. 
+Windows provides a set of 64-bit DLLs in `%windir%\system32` and an equivalent set of 32-bit DLLs in `%windir%\syswow64`. 
 In fact the bulk of the binary images in this directory are identical to the same files in the `system32` directory on a 
 32-bit Windows installation. (It seems to me an unfortunate naming issue that the **64**-bit DLLs live in system**32** and 
 the **32**-bit ones live in syswow**64**, but there it is!)
@@ -148,15 +148,15 @@ the **32**-bit ones live in syswow**64**, but there it is!)
 So here is the output when we run the 32-bit program on 64-bit Windows 7:
 
 ```
-C:> x86\\ProcessTracer x86\\TrivialProgram.exe
+C:> x86\ProcessTracer x86\TrivialProgram.exe
 CREATE PROCESS 4844 at 0x00A21010
 LOAD DLL 77E70000 ntdll.dll
 UNLOAD DLL 77700000
 UNLOAD DLL 77080000
 UNLOAD DLL 77700000
 UNLOAD DLL 77820000
-LOAD DLL 77080000 C:\\Windows\\syswow64\\kernel32.dll
-LOAD DLL 76920000 C:\\Windows\\syswow64\\KERNELBASE.dll
+LOAD DLL 77080000 C:\Windows\syswow64\kernel32.dll
+LOAD DLL 76920000 C:\Windows\syswow64\KERNELBASE.dll
 EXIT PROCESS 0
   Frame       Code address
   0x001EFC04  0x77E8FCB2 ZwTerminateProcess + 18
@@ -182,8 +182,8 @@ This can be somewhat confusing in practice when you use a mix of 32-bit and 64-b
 simple example, consider this sequence of operations:
 - start a command prompt 
 - type `notepad` and press Enter.
-Windows starts the 64-bit notepad program from C:\\Windows\\system32.
-- type `C:\\Windows\\SysWow64\\cmd.exe` and press Enter to run a 32-bit command shell.
+Windows starts the 64-bit notepad program from C:\Windows\system32.
+- type `C:\Windows\SysWow64\cmd.exe` and press Enter to run a 32-bit command shell.
 - type `notepad` and press Enter
 Windows now starts the **32-bit** notepad program simply because the current shell is a 32-bit process and WOW modifies the 
 target directories used when searching the PATH for the notepad program. I defy you to identify which notepad is which:
@@ -192,8 +192,8 @@ target directories used when searching the PATH for the notepad program. I defy 
 
 The other main translation that the WOW64 layer provides is for access to the Windows registry. The 32-bit specific parts of
  the registry are held underneath the `Wow6432Node` key in various places in the registry, such as `HKEY_LOCAL_MACHINE`, and
- so a request from a 32-bit program to `HKLM\\Software\\Test` is transparently mapped by WOW64 to a request for
- `HKLM\\Software\\Wow6432Node\\Test`. Note that the `Wow6432Node` key name is reserved and applications should not
+ so a request from a 32-bit program to `HKLM\Software\Test` is transparently mapped by WOW64 to a request for
+ `HKLM\Software\Wow6432Node\Test`. Note that the `Wow6432Node` key name is reserved and applications should not
  program against this value - the registry functions have been enhanced to allow a 32-bit process to see 64-bit registry keys (and vice versa).
 
 I am not going to cover more of this mapping in this article. I refer interested readers to the Microsoft web site: for
@@ -206,8 +206,8 @@ We have so far tried running a pair of 64-bit programs and a pair of 32-bit prog
 First off, we try to execute the 32-bit process tracer with a 64-bit target:
 
 ```
-C:> x86\\ProcessTracer x64\\TrivialProgram.exe
-Unexpected exception: Unable to start x64\\TrivialProgram.exe: 50
+C:> x86\ProcessTracer x64\TrivialProgram.exe
+Unexpected exception: Unable to start x64\TrivialProgram.exe: 50
 ```
 This failing error code (50) is "`ERROR_NOT_SUPPORTED`" - Windows does not allow a 32-bit program to **debug** a 64-bit program.
  This makes some sort of sense: an existing 32-bit debugging program would be unlikely to be able to interpret the 64-bit values
@@ -219,13 +219,13 @@ cross boundary debugging in this direction.
 However we have more success if we try it the other way round:
 
 ```
-C:> x64\\ProcessTracer x86\\TrivialProgram.exe
+C:> x64\ProcessTracer x86\TrivialProgram.exe
 CREATE PROCESS 3004 at 0x0000000000121010
 LOAD DLL 0000000077C90000 ntdll.dll
 LOAD DLL 0000000077E70000 ntdll32.dll
-LOAD DLL 0000000073EF0000 C:\\Windows\\SYSTEM32\\wow64.dll
-LOAD DLL 0000000073E90000 C:\\Windows\\SYSTEM32\\wow64win.dll
-LOAD DLL 0000000073E80000 C:\\Windows\\SYSTEM32\\wow64cpu.dll
+LOAD DLL 0000000073EF0000 C:\Windows\SYSTEM32\wow64.dll
+LOAD DLL 0000000073E90000 C:\Windows\SYSTEM32\wow64win.dll
+LOAD DLL 0000000073E80000 C:\Windows\SYSTEM32\wow64cpu.dll
 LOAD DLL 0000000077700000 WOW64_IMAGE_SECTION
 UNLOAD DLL 0000000077700000
 LOAD DLL 0000000077080000 WOW64_IMAGE_SECTION
@@ -234,8 +234,8 @@ LOAD DLL 0000000077700000 NOT_AN_IMAGE
 UNLOAD DLL 0000000077700000
 LOAD DLL 0000000077820000 NOT_AN_IMAGE
 UNLOAD DLL 0000000077820000
-LOAD DLL 0000000077080000 C:\\Windows\\syswow64\\kernel32.dll
-LOAD DLL 0000000076920000 C:\\Windows\\syswow64\\KERNELBASE.dll
+LOAD DLL 0000000077080000 C:\Windows\syswow64\kernel32.dll
+LOAD DLL 0000000076920000 C:\Windows\syswow64\KERNELBASE.dll
 EXCEPTION 0x4000001f at 0x0000000077F10F3B LdrVerifyImageMatchesChecksum + 2412
   Parameters: 0
   Frame       Code address
@@ -387,7 +387,7 @@ void SimpleSymbolEngine::stackTrace(HANDLE hThread,
 
   DWORD64 lastBp = 0; // Prevent loops with optimised stackframes
 
-  os << "  Frame       Code address\\n";
+  os << "  Frame       Code address\n";
   while (::StackWalk64(machineType,
     hProcess, hThread,
     &stackFrame, pContext,
@@ -395,17 +395,17 @@ void SimpleSymbolEngine::stackTrace(HANDLE hThread,
   {
     if (stackFrame.AddrPC.Offset == 0)
     {
-      os << "Null address\\n";
+      os << "Null address\n";
       break;
     }
     PVOID frame = 
       reinterpret_cast<PVOID>(stackFrame.AddrFrame.Offset);
     PVOID pc = 
       reinterpret_cast<PVOID>(stackFrame.AddrPC.Offset);
-    os << "  0x" << frame << "  " << addressToString(pc) << "\\n";
+    os << "  0x" << frame << "  " << addressToString(pc) << "\n";
     if (lastBp >= stackFrame.AddrFrame.Offset)
     {
-      os << "Stack frame out of sequence...\\n";
+      os << "Stack frame out of sequence...\n";
       break;
     }
     lastBp = stackFrame.AddrFrame.Offset;
