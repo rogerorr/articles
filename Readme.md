@@ -8,10 +8,10 @@ Contains various articles on IT topics, some with associated code.
 - [Using the Unix ptrace API](Linux_Debugger) - First published in C Vu, Nov 2012.
 - [Auto - A Necessary Evil?](Auto/Auto_Part1.md) - First published in Overload, Jun 2013.
 - [Auto - a necessary evil? Part 2](Auto/Auto_Part2.md) - First published in Overload, Aug 2013.
-- [Windows 64-bit Calling Conventions](Windows-64bit-Calling-Conventions) - First published in Overload, Apr 2014.
-- [Identity During Construction](Identity-during-construction) - First published in CVu, May 2014
-[//]: # (Order Notation in Practice - Overload, Dec 2014.)
-[//]: # (Using 32-bit COM Objects from 64-bit Programs C Vu,  May 2015.)
+- [Windows 64-bit Calling Conventions](Windows_64bit_Calling_Conventions) - First published in Overload, Apr 2014.
+- [Identity During Construction](Identity_during_construction) - First published in CVu, May 2014
+- [Order Notation in Practice](OrderNotationInPractice) - First published in Overload, Dec 2014.
+- [Using 32-bit COM Objects from 64-bit Programs](DllSurrogate) - First published in C Vu, May 2015.
 - [One Definition Rule](OneDefinitionRule.md) - First published in C Vu, Nov 2015
 - [Making Templates Easier](Making_Templates_Easier/Making_Templates_Easier.odp) - First presented at ACCU Oxford, Jan 2017
 - [Class Template Argument Deduction](ClassTemplateArgumentDeduction.md) - First published in Overload, Feb 2018
