@@ -16,9 +16,9 @@ Testing for equality is an important concern in a lot of programming tasks and i
 
 There are a wide variety of meanings to the use of 'equality' in a programming language. The list of possible meanings includes:
 
-   # Refer to the same memory location
-   # Have the same value
-   # Behave the same way
+1. Refer to the same memory location
+2. Have the same value
+3. Behave the same way
 
 This article explores some of the details and pitfalls with equality in terms of just the first two items on this list.
  We found it was a harder task than it appears at first glance to get it right (for some definition of right), even
@@ -266,10 +266,10 @@ even though the **same** objects are being compared in each case. The trouble is
 There are some principles from the mathematics of "equivalence relations" that, if adhered to, result in a consistent use of
  the concept of equality. They are that equality is...
 
-**Reflexive**  a==a is always true
-**Commutative** - if a==b then b==a
-**Transitive** - if a==b and b==c then a==c
-**Reliable** - Never throws. (This means checking for null!)
+- **Reflexive**  a==a is always true
+- **Commutative** - if a==b then b==a
+- **Transitive** - if a==b and b==c then a==c
+- **Reliable** - Never throws. (This means checking for null!)
 
 These rules are listed out in fuller detail in the language references for both C# [C# equals] and Java [Java equals].
  The wording from the C++ standard is short enough to quote in full: "(5.10p4) Each of the operators shall yield true if 
@@ -445,7 +445,8 @@ Note that this is a case where polymorphic equality makes a lot of sense: two co
 the same objects. You are not usually interested in whether they are from the same class (or even whether the internal
  states are the same); the important thing for equality is the objects they contain.
 
-**Conclusion**
+## Conclusion
+
 Equality is hard to define simply even for a single language. It is easy to implement if you stick to a small set of
  common sense rules; more complicated implementations are possible but not in general recommended.
 
