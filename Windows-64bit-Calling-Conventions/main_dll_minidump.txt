@@ -1,0 +1,57 @@
+64bit
+
+At actual exception
+===================
+ 	KernelBase.dll!RaiseException()
+>	function.dll!_CxxThrowException(void * pExceptionObject, const _s__ThrowInfo * pThrowInfo) Line 152
+ 	function.dll!func() Line 4
+ 	main.exe!main() Line 11
+ 	main.exe!__tmainCRTStartup() Line 241
+ 	kernel32.dll!BaseThreadInitThunk()
+ 	ntdll.dll!RtlUserThreadStart()
+
+.dump
+=====
+
+>	KERNELBASE!RaiseException+0x39
+ 	function+0x1110
+ 	function+0x2bd90
+ 	0x2af870
+ 	0x1
+ 	function+0xf0
+ 	0x00000001`e06d7363
+
+.dump with PDB:
+===============
+
+>	KERNELBASE!RaiseException+0x39
+ 	function!_CxxThrowException+0xd4 [f:\dd\vctools\crt_bld\self_64_amd64\crt\prebuild\eh\throw.cpp @ 152]
+ 	function!TI1H
+ 	0x28fb10
+ 	0x1
+ 	function!__ImageBase+0xf0
+ 	0x00000001`e06d7363
+
+32bit
+
+At actual exception
+===================
+ 	KERNELBASE!RaiseException+0x58
+>	function.dll!_CxxThrowException(void * pExceptionObject, const _s__ThrowInfo * pThrowInfo) Line 152
+ 	function.dll!func() Line 4
+ 	main.exe!main() Line 12
+ 	main.exe!__tmainCRTStartup() Line 241
+ 	kernel32.dll!@BaseThreadInitThunk@12()
+ 	ntdll.dll!___RtlUserThreadStart@8()
+ 	ntdll.dll!__RtlUserThreadStart@8()
+
+.dump
+=====
+ 	KERNELBASE!RaiseException+0x58
+ 	function+0x108b
+ 	function+0x1029
+>	main!main+0x37 [c:\projects\articles\2014-01-x64\main.cpp @ 12]
+ 	main!__tmainCRTStartup+0xfe [f:\dd\vctools\crt_bld\self_x86\crt\src\crt0.c @ 241]
+ 	kernel32!BaseThreadInitThunk+0xe
+ 	ntdll!__RtlUserThreadStart+0x70
+ 	ntdll!_RtlUserThreadStart+0x1b

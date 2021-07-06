@@ -6,9 +6,9 @@ Contains various articles on IT topics, some with associated code.
 - [Equality](Equality.md) - First published in Overload, June 2011
 - [Debugging In Win64](Simple_Debugger/DebuggingInWin64.md) - First published in CVu, Jan 2012
 - [Using the Unix ptrace API](Linux_Debugger) - First published in C Vu, Nov 2012.
-[//]: # (Auto - A Necessary Evil? - Overload, Jun 2013.)
-[//]: # (Auto - a necessary evil? Part 2 - Overload, Aug 2013.)
-[//]: # (Windows 64-bit Calling Conventions - Overload, Apr 2014.)
+- [Auto - A Necessary Evil?](Auto/Auto_Part1.md) - First published in Overload, Jun 2013.
+- [Auto - a necessary evil? Part 2](Auto/Auto_Part2.md) - First published in Overload, Aug 2013.
+- [Windows 64-bit Calling Conventions](Windows-64bit-Calling-Conventions) - First published in Overload, Apr 2014.
 - [Identity During Construction](Identity-during-construction) - First published in CVu, May 2014
 [//]: # (Order Notation in Practice - Overload, Dec 2014.)
 [//]: # (Using 32-bit COM Objects from 64-bit Programs C Vu,  May 2015.)

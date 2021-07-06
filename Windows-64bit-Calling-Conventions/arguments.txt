@@ -1,0 +1,34 @@
+64bit
+=====
+
+Without optimisation:
+		a	1111
+		b	2222
+		c	3333
+		d	4444
+		e	5555
+
+With optimisation:
+		a	1
+		b	1067332614
+		c	1
+		d	4058400
+		e	5555
+
+32bit
+=====
+
+Without optimisation:
+		a	1111
+		b	2222
+		c	3333
+		d	4444
+		e	5555
+
+With optimisation:
+		a	1111
+		b	2222
+		c	3333
+		d	4444
+		e	5555
+
