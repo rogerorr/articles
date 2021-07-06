@@ -67,27 +67,27 @@ I am going to use a program that traces major events in a program's lifecycle to
 ```
 C:> ProcessTracer BadProgram.exe
 CREATE PROCESS 4092 at 0x00401398 mainCRTStartup   
-     f:\\dd\\...\\crtexe.c(404)
+     f:\dd\...\crtexe.c(404)
 LOAD DLL 77230000 ntdll.dll
-LOAD DLL 75BC0000 C:\\Windows\\system32\\kernel32.dll
-LOAD DLL 75430000 C:\\Windows\\system32\\KERNELBASE.dll
-LOAD DLL 6BD90000 C:\\Windows\\WinSxS\\...\\MSVCR80.dll
-LOAD DLL 76E40000 C:\\Windows\\system32\\msvcrt.dll
-EXCEPTION 0xc0000005 at 0x0040108C Test::doit + 12 c:\\article\\badprogram.cpp(10) + 12 bytes
+LOAD DLL 75BC0000 C:\Windows\system32\kernel32.dll
+LOAD DLL 75430000 C:\Windows\system32\KERNELBASE.dll
+LOAD DLL 6BD90000 C:\Windows\WinSxS\...\MSVCR80.dll
+LOAD DLL 76E40000 C:\Windows\system32\msvcrt.dll
+EXCEPTION 0xc0000005 at 0x0040108C Test::doit + 12 c:\article\badprogram.cpp(10) + 12 bytes
   Parameters: 0 0
   Frame       Code address
-  0x0012FF34  0x0040108C Test::doit + 12 c:\\article\\badprogram.cpp(10) + 12 bytes
-  0x0012FF44  0x00401045 main + 21 c:\\article\\badprogram.cpp(16) + 15 bytes
-  0x0012FF88  0x004011F7 __tmainCRTStartup + 271 f:\\dd\\...\\crtexe.c(597) + 23 bytes
+  0x0012FF34  0x0040108C Test::doit + 12 c:\article\badprogram.cpp(10) + 12 bytes
+  0x0012FF44  0x00401045 main + 21 c:\article\badprogram.cpp(16) + 15 bytes
+  0x0012FF88  0x004011F7 __tmainCRTStartup + 271 f:\dd\...\crtexe.c(597) + 23 bytes
   0x0012FF94  0x75C11194 BaseThreadInitThunk + 18
   0x0012FFD4  0x7728B3F5 RtlInitializeExceptionChain + 99
   0x0012FFEC  0x7728B3C8 RtlInitializeExceptionChain + 54
-EXCEPTION 0xc0000005 at 0x0040108C Test::doit + 12 c:\\article\\badprogram.cpp(10) + 12 bytes (last chance)
+EXCEPTION 0xc0000005 at 0x0040108C Test::doit + 12 c:\article\badprogram.cpp(10) + 12 bytes (last chance)
  EXIT PROCESS 3221225477
   Frame       Code address
-  0x0012FF34  0x0040108C Test::doit + 12 c:\\article\\badprogram.cpp(10) + 12 bytes
-  0x0012FF44  0x00401045 main + 21 c:\\article\\badprogram.cpp(16) + 15 bytes
-  0x0012FF88  0x004011F7 __tmainCRTStartup + 271 f:\\dd\\...\\crtexe.c(597) + 23 bytes
+  0x0012FF34  0x0040108C Test::doit + 12 c:\article\badprogram.cpp(10) + 12 bytes
+  0x0012FF44  0x00401045 main + 21 c:\article\badprogram.cpp(16) + 15 bytes
+  0x0012FF88  0x004011F7 __tmainCRTStartup + 271 f:\dd\...\crtexe.c(597) + 23 bytes
   0x0012FF94  0x75C11194 BaseThreadInitThunk + 18
   0x0012FFD4  0x7728B3F5 RtlInitializeExceptionChain + 99
   0x0012FFEC  0x7728B3C8 RtlInitializeExceptionChain + 54
@@ -99,7 +99,7 @@ The first step is to create the child process (BadProgram.exe) with the correct 
 CreateProcess(0, const_cast<char*>(cmdLine.c_str()),
      0, 0, true,
      DEBUG_ONLY_THIS_PROCESS,
-     0, 0, &startupInfo, &ProcessInformation)\f0
+     0, 0, &startupInfo, &ProcessInformation)
 ```
 We don't need the process and thread handles returned by the `CreateProcess` call as the debug API will provide them, so we close these handles immediately.
 One of the things I find confusing about the debug API is remembering which handles need to be closed manually and which ones are handled by the system \endash  we will revisit this issue later on.
@@ -290,7 +290,7 @@ void ProcessTracer::OnException(DWORD threadId,
   {
     if (exception.NumberParameters)
     {
-      std::cout << "\\n  Parameters:";
+      std::cout << "\n  Parameters:";
       for (DWORD idx = 0; idx != exception.NumberParameters;
         ++idx)
       {
