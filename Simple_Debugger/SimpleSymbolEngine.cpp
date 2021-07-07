@@ -39,7 +39,7 @@ COPYRIGHT
 
 #pragma comment( lib, "dbghelp" )
 
-static char const szRCSID[] = "$Id: SimpleSymbolEngine.cpp 295 2021-07-05 13:02:27Z roger $";
+static char const szRCSID[] = "$Id: SimpleSymbolEngine.cpp 297 2021-07-07 21:30:58Z roger $";
 
 namespace
 {
@@ -70,7 +70,7 @@ namespace
 
   // We pass 'false' as the fInvadeProcess argument to SymInitialize (for performance)
   // and therefore need to call SymLoadModule64 when necessary
-  DWORD64 GetModuleBaseWrapper(HANDLE hProcess, DWORD64 address)
+  DWORD64 CALLBACK GetModuleBaseWrapper(HANDLE hProcess, DWORD64 address)
   {
      DWORD64 result = SymGetModuleBase64(hProcess, address);
      if (!result)

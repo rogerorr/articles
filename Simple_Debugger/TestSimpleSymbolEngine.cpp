@@ -1,30 +1,44 @@
 #include "SimpleSymbolEngine.h"
 
 #include <iostream>
+#include <sstream>
 #include <thread>
 
-void bottom()
+int bottom()
 {
   HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
-  std::thread thr([=]() {
+  std::stringstream ss;
+  std::thread thr([&]() {
     SimpleSymbolEngine eng;
     eng.init(GetCurrentProcess());
-    eng.stackTrace(hThread, std::cout);
+    eng.stackTrace(hThread, ss);
   });
   thr.join();
+  
+  int errors{};
+  std::string out(ss.str());
+  std::cout << out << '\n';
+  for (auto* name : { "bottom", "middle", "top", "main"}) {
+    if (out.find(name) == std::string::npos) {
+      std::cerr << "Error: unable to find '" << name << "' in stack trace\n";
+      ++errors;
+    }
+  }
+
+  return errors;
 }
 
-void middle()
+int middle()
 {
-  bottom();
+  return bottom();
 }
 
-void top()
+int top()
 {
-  middle();
+  return middle();
 }
 
 int main()
 {
-  top();
+  return top();
 }
