@@ -18,4 +18,4 @@ Contains various articles on IT topics, some with associated code.
 - [Building Gcc Module Branch](BuildingGccModuleBranch.md) - First published in Overload, Dec 2020
 - [Debugging Memory Corruption on Windows](Debugging_Memory_Corruption_On_Windows) - First published in CVu Jan 2021
 - [A War Story: Debugging a Slow Windows Logon](Logon_Problems/DebuggingASlowLogon.md) - First published in CVu, Mar 2021
-
+- [How Many Braces Must a Programmer Write Down?](ArrayInitialisation.md) - First published in CVu, Jul 2021
