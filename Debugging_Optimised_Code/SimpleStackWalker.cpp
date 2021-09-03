@@ -69,7 +69,7 @@ COPYRIGHT
 
 // clang-format off
 static char const szRCSID[] =
-  "$Id: SimpleStackWalker.cpp 318 2021-09-03 12:51:59Z roger $";
+  "$Id: SimpleStackWalker.cpp 319 2021-09-03 18:26:34Z roger $";
 // clang-format on
 
 #ifndef _M_X64

@@ -29,7 +29,7 @@ notice.
 
 // clang-format off
 static char const szRCSID[] =
-    "$Id: TestStackWalker.cpp 311 2021-09-01 23:10:10Z roger $";
+    "$Id: TestStackWalker.cpp 322 2021-09-03 22:50:38Z roger $";
 // clang-format on
 
 #include "SimpleStackWalker.h"
@@ -64,6 +64,8 @@ void printStack() {
   std::cout << ss.str() << '\n';
 }
 
+// #pragma optimize("", off)
+
 void process(Source &source) {
   int local_i = printf("This ");
   int local_j = printf("is ");
@@ -77,6 +79,8 @@ void process(Source &source) {
     std::cerr << "Something odd happened\n";
   }
 }
+
+// #pragma optimize("", on)
 
 int test() {
   Source source;
