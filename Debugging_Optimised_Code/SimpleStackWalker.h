@@ -26,11 +26,11 @@
   Comments and suggestions are always welcome.
   Please report bugs to rogero@howzatt.co.uk.
 
-  $Revision: 311 $
+  $Revision: 326 $
 */
 
 // clang-format off
-// $Id: SimpleStackWalker.h 311 2021-09-01 23:10:10Z roger $
+// $Id: SimpleStackWalker.h 326 2021-09-07 22:35:20Z roger $
 // clang-format on
 
 #include <iosfwd>
@@ -83,10 +83,21 @@ private:
   std::string
   addressToString(DWORD64 address) const;
 
-  void SimpleStackWalker::showVariablesAt(
+  /** Convert an inline address to a string */
+  std::string
+  inlineToString(DWORD64 address,
+                 DWORD inline_context) const;
+
+  void showVariablesAt(
       std::ostream &os,
       const STACKFRAME64 &stackFrame,
       const CONTEXT &context) const;
+
+  void showInlineVariablesAt(
+      std::ostream &os,
+      const STACKFRAME64 &stackFrame,
+      const CONTEXT &context,
+      DWORD inline_context) const;
 
   HANDLE hProcess;
 };

@@ -69,7 +69,7 @@ COPYRIGHT
 
 // clang-format off
 static char const szRCSID[] =
-  "$Id: SimpleStackWalker.cpp 319 2021-09-03 18:26:34Z roger $";
+  "$Id: SimpleStackWalker.cpp 326 2021-09-07 22:35:20Z roger $";
 // clang-format on
 
 #ifndef _M_X64
@@ -209,6 +209,60 @@ SimpleStackWalker::addressToString(
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Convert an inline address to a string
+std::string SimpleStackWalker::inlineToString(
+    DWORD64 address,
+    DWORD inline_context) const {
+  std::ostringstream oss;
+
+  // First the raw address
+  oss << "0x" << (PVOID)address;
+
+  // Then symbol, if any
+  struct {
+    SYMBOL_INFO symInfo;
+    char name[4 * 256];
+  } SymInfo = {{sizeof(SymInfo.symInfo)}, ""};
+
+  PSYMBOL_INFO pSym = &SymInfo.symInfo;
+  pSym->MaxNameLen = sizeof(SymInfo.name);
+
+  DWORD64 uDisplacement(0);
+  if (SymFromInlineContext(
+          hProcess, address, inline_context,
+          &uDisplacement, pSym)) {
+    oss << " " << pSym->Name;
+    if (uDisplacement != 0) {
+      LONG_PTR displacement =
+          static_cast<LONG_PTR>(
+              uDisplacement);
+      if (displacement < 0)
+        oss << " - " << -displacement;
+      else
+        oss << " + " << displacement;
+    }
+  }
+
+  // Finally any file/line number
+  IMAGEHLP_LINE64 lineInfo = {
+      sizeof(lineInfo)};
+  DWORD dwDisplacement(0);
+  if (SymGetLineFromInlineContext(
+          hProcess, address, inline_context,
+          0, &dwDisplacement, &lineInfo)) {
+    oss << "   " << lineInfo.FileName << "("
+        << lineInfo.LineNumber << ")";
+    if (dwDisplacement != 0) {
+      oss << " + " << dwDisplacement
+          << " byte"
+          << (dwDisplacement == 1 ? "" : "s");
+    }
+  }
+
+  return oss.str();
+}
+
+////////////////////////////////////////////////////////////////////////
 // StackTrace: try to trace the stack to the
 // given output
 void SimpleStackWalker::stackTrace(
@@ -256,6 +310,27 @@ void SimpleStackWalker::stackTrace(
     lastFrame = frame;
 
     showVariablesAt(os, stackFrame, context);
+
+    // Expand any inline frames
+    if (const DWORD inline_count =
+            SymAddrIncludeInlineTrace(
+                hProcess, pc)) {
+      DWORD inline_context(0), frameIndex(0);
+      if (SymQueryInlineTrace(
+              hProcess, pc, 0, pc, pc,
+              &inline_context, &frameIndex)) {
+        for (DWORD i = 0; i < inline_count;
+             i++, inline_context++) {
+          os << "-- inline frame --  "
+             << inlineToString(pc,
+                               inline_context)
+             << '\n';
+          showInlineVariablesAt(
+              os, stackFrame, context,
+              inline_context);
+        }
+      }
+    }
   }
 
   os.flush();
@@ -281,6 +356,25 @@ void SimpleStackWalker::showVariablesAt(
       hProcess, 0, "*",
       EnumLocalCallBack::enumSymbolsProc,
       &callback);
+}
+
+/////////////////////////////////////////////
+void SimpleStackWalker::showInlineVariablesAt(
+    std::ostream &os,
+    const STACKFRAME64 &stackFrame,
+    const CONTEXT &context,
+    DWORD inline_context) const {
+  if (SymSetScopeFromInlineContext(
+          hProcess, stackFrame.AddrPC.Offset,
+          inline_context)) {
+    EnumLocalCallBack callback(
+        *this, os, stackFrame, context);
+
+    SymEnumSymbolsEx(
+        hProcess, 0, "*",
+        EnumLocalCallBack::enumSymbolsProc,
+        &callback, SYMENUM_OPTIONS_INLINE);
+  }
 }
 
 /////////////////////////////////////////////
