@@ -69,7 +69,7 @@ COPYRIGHT
 
 // clang-format off
 static char const szRCSID[] =
-  "$Id: SimpleStackWalker.cpp 326 2021-09-07 22:35:20Z roger $";
+  "$Id: SimpleStackWalker.cpp 340 2023-07-31 10:50:31Z roger $";
 // clang-format on
 
 #ifndef _M_X64
@@ -274,7 +274,7 @@ void SimpleStackWalker::stackTrace(
 
   return stackTrace(hThread, &context, os);
 }
-
+    
 ////////////////////////////////////////////////////////////////////////
 // StackTrace: try to trace the stack to the
 // given output using the given context

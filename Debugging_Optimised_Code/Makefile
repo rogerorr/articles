@@ -1,7 +1,8 @@
 all: x64 x64\optimised x64\fully_optimised x64\unoptimised\
   x64\optimised\TestStackWalker.exe x64\optimised\TestStackWalker.dump \
   x64\fully_optimised\TestStackWalker.exe x64\fully_optimised\TestStackWalker.dump \
-  x64\unoptimised\TestStackWalker.exe x64\unoptimised\TestStackWalker.dump
+  x64\unoptimised\TestStackWalker.exe x64\unoptimised\TestStackWalker.dump \
+  x64\unoptimised\TestUnhandledExceptionFilter.exe
 
 clean:
 	@-del /q/s x64
@@ -28,6 +29,9 @@ x64\fully_optimised\TestStackWalker.exe: TestStackWalker.cpp $(*D)\SimpleStackWa
 	cl /nologo /Fo$(*D)\ /Fd$(*D)\ /Fe$@ /Ox /FAsc /Fa$*.cod $(CC_FLAGS) /DNDEBUG /MD $**
 
 x64\unoptimised\TestStackWalker.exe: TestStackWalker.cpp $(*D)\SimpleStackWalker.obj
+	cl /nologo /Fo$(*D)\ /Fd$(*D)\ /Fe$@ /FAsc /Fa$*.cod $(CC_FLAGS)  /D_DEBUG /MDd $**
+
+x64\unoptimised\TestUnhandledExceptionFilter.exe: TestUnhandledExceptionFilter.cpp $(*D)\SimpleStackWalker.obj
 	cl /nologo /Fo$(*D)\ /Fd$(*D)\ /Fe$@ /FAsc /Fa$*.cod $(CC_FLAGS)  /D_DEBUG /MDd $**
 
 x64\optimised\TestStackWalker.dump: $*.exe

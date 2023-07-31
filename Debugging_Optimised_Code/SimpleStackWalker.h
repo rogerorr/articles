@@ -26,11 +26,11 @@
   Comments and suggestions are always welcome.
   Please report bugs to rogero@howzatt.co.uk.
 
-  $Revision: 326 $
+  $Revision: 340 $
 */
 
 // clang-format off
-// $Id: SimpleStackWalker.h 326 2021-09-07 22:35:20Z roger $
+// $Id: SimpleStackWalker.h 340 2023-07-31 10:50:31Z roger $
 // clang-format on
 
 #include <iosfwd>
