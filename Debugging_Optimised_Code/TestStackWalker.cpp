@@ -29,7 +29,7 @@ notice.
 
 // clang-format off
 static char const szRCSID[] =
-    "$Id: TestStackWalker.cpp 322 2021-09-03 22:50:38Z roger $";
+    "$Id: TestStackWalker.cpp 343 2023-07-31 21:10:27Z roger $";
 // clang-format on
 
 #include "SimpleStackWalker.h"
@@ -44,19 +44,14 @@ class Source {
   mutable std::mt19937 mt{rd()};
 
 public:
-  unsigned int operator()() const {
-    return mt();
-  }
+  unsigned int operator()() const { return mt(); }
 };
 
 void printStack() {
-  HANDLE hThread =
-      OpenThread(THREAD_ALL_ACCESS, FALSE,
-                 GetCurrentThreadId());
+  HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId());
   std::stringstream ss;
   std::thread thr{[&]() {
-    SimpleStackWalker eng{
-        GetCurrentProcess()};
+    SimpleStackWalker eng{GetCurrentProcess()};
     eng.stackTrace(hThread, ss);
   }};
   thr.join();
@@ -74,8 +69,7 @@ void process(Source &source) {
 
   printStack();
 
-  if (local_i != 5 || local_j != 3 ||
-      local_k != 7) {
+  if (local_i != 5 || local_j != 3 || local_k != 7) {
     std::cerr << "Something odd happened\n";
   }
 }

@@ -6,7 +6,7 @@ DESCRIPTION
   Simple stack walker for MSVC
 
 NOTES
-  For the purpsoes of the accompanying
+  For the purposes of the accompanying
   article, the code contains multiple
   implementations of the key method:
   EnumLocalCallBack::operator().
@@ -28,7 +28,7 @@ NOTES
   OPTIMISED
 
 COPYRIGHT
-  Copyright (C) 2004, 2021 by Roger Orr
+  Copyright (C) 2004, 2023 by Roger Orr
   <rogero@howzatt.co.uk>
 
   This software is distributed in the hope
@@ -69,12 +69,11 @@ COPYRIGHT
 
 // clang-format off
 static char const szRCSID[] =
-  "$Id: SimpleStackWalker.cpp 340 2023-07-31 10:50:31Z roger $";
+  "$Id: SimpleStackWalker.cpp 343 2023-07-31 21:10:27Z roger $";
 // clang-format on
 
 #ifndef _M_X64
-#error                                       \
-    "This code only supports the X64 environment"
+#error "This code only supports the X64 environment"
 #endif // _M_X64
 
 namespace {
@@ -84,8 +83,7 @@ namespace {
  * Convert NUL terminated wide string to
  * string
  */
-std::string
-strFromWchar(wchar_t const *const wString) {
+std::string strFromWchar(wchar_t const *const wString) {
   size_t const len = wcslen(wString) + 1;
   size_t const nBytes = len * sizeof(wchar_t);
   std::vector<char> chArray(nBytes);
@@ -93,33 +91,24 @@ strFromWchar(wchar_t const *const wString) {
   return std::string(&chArray[0]);
 }
 
-std::string getBaseType(DWORD baseType,
-                        ULONG64 length);
+std::string getBaseType(DWORD baseType, ULONG64 length);
 
 /////////////////////////////////////////////
 struct EnumLocalCallBack {
   // Called by the Symbol Engine
-  static BOOL CALLBACK
-  enumSymbolsProc(PSYMBOL_INFO pSymInfo,
-                  ULONG /*SymbolSize*/,
-                  PVOID UserContext) {
-    auto &self =
-        *(EnumLocalCallBack *)UserContext;
+  static BOOL CALLBACK enumSymbolsProc(PSYMBOL_INFO pSymInfo,
+                                       ULONG /*SymbolSize*/,
+                                       PVOID UserContext) {
+    auto &self = *(EnumLocalCallBack *)UserContext;
     self(*pSymInfo);
     return TRUE;
   }
 
-  EnumLocalCallBack(
-      const SimpleStackWalker &eng,
-      std::ostream &opf,
-      const STACKFRAME64 &stackFrame,
-      const CONTEXT &context)
-      : eng(eng), opf(opf),
-        stackFrame(stackFrame),
-        context(context) {}
+  EnumLocalCallBack(const SimpleStackWalker &eng, std::ostream &opf,
+                    const STACKFRAME64 &stackFrame, const CONTEXT &context)
+      : eng(eng), opf(opf), stackFrame(stackFrame), context(context) {}
 
-  void operator()(
-      const SYMBOL_INFO &symInfo) const;
+  void operator()(const SYMBOL_INFO &symInfo) const;
 
 private:
   const SimpleStackWalker &eng;
@@ -135,31 +124,23 @@ struct RegInfo {
   DWORD64 value;
 };
 
-RegInfo getRegInfo(ULONG reg,
-                   const CONTEXT &context);
+RegInfo getRegInfo(ULONG reg, const CONTEXT &context);
 
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////
-SimpleStackWalker::SimpleStackWalker(
-    HANDLE hProcess)
-    : hProcess(hProcess) {
+SimpleStackWalker::SimpleStackWalker(HANDLE hProcess) : hProcess(hProcess) {
   DWORD dwOpts = SymGetOptions();
-  dwOpts |= SYMOPT_LOAD_LINES |
-            SYMOPT_OMAP_FIND_NEAREST;
+  dwOpts |= SYMOPT_LOAD_LINES | SYMOPT_OMAP_FIND_NEAREST;
   SymSetOptions(dwOpts);
   SymInitialize(hProcess, 0, true);
 }
 
 ////////////////////////////////////////////////////////////////////////
-SimpleStackWalker::~SimpleStackWalker() {
-  ::SymCleanup(hProcess);
-}
+SimpleStackWalker::~SimpleStackWalker() { ::SymCleanup(hProcess); }
 
 ////////////////////////////////////////////////////////////////////////
-std::string
-SimpleStackWalker::addressToString(
-    DWORD64 address) const {
+std::string SimpleStackWalker::addressToString(DWORD64 address) const {
   std::ostringstream oss;
 
   // First the raw address
@@ -175,13 +156,10 @@ SimpleStackWalker::addressToString(
   pSym->MaxNameLen = sizeof(SymInfo.name);
 
   DWORD64 uDisplacement(0);
-  if (SymFromAddr(hProcess, address,
-                  &uDisplacement, pSym)) {
+  if (SymFromAddr(hProcess, address, &uDisplacement, pSym)) {
     oss << " " << pSym->Name;
     if (uDisplacement != 0) {
-      LONG_PTR displacement =
-          static_cast<LONG_PTR>(
-              uDisplacement);
+      LONG_PTR displacement = static_cast<LONG_PTR>(uDisplacement);
       if (displacement < 0)
         oss << " - " << -displacement;
       else
@@ -190,17 +168,12 @@ SimpleStackWalker::addressToString(
   }
 
   // Finally any file/line number
-  IMAGEHLP_LINE64 lineInfo = {
-      sizeof(lineInfo)};
+  IMAGEHLP_LINE64 lineInfo = {sizeof(lineInfo)};
   DWORD dwDisplacement(0);
-  if (SymGetLineFromAddr64(hProcess, address,
-                           &dwDisplacement,
-                           &lineInfo)) {
-    oss << "   " << lineInfo.FileName << "("
-        << lineInfo.LineNumber << ")";
+  if (SymGetLineFromAddr64(hProcess, address, &dwDisplacement, &lineInfo)) {
+    oss << "   " << lineInfo.FileName << "(" << lineInfo.LineNumber << ")";
     if (dwDisplacement != 0) {
-      oss << " + " << dwDisplacement
-          << " byte"
+      oss << " + " << dwDisplacement << " byte"
           << (dwDisplacement == 1 ? "" : "s");
     }
   }
@@ -210,9 +183,8 @@ SimpleStackWalker::addressToString(
 
 ////////////////////////////////////////////////////////////////////////
 // Convert an inline address to a string
-std::string SimpleStackWalker::inlineToString(
-    DWORD64 address,
-    DWORD inline_context) const {
+std::string SimpleStackWalker::inlineToString(DWORD64 address,
+                                              DWORD inline_context) const {
   std::ostringstream oss;
 
   // First the raw address
@@ -228,14 +200,11 @@ std::string SimpleStackWalker::inlineToString(
   pSym->MaxNameLen = sizeof(SymInfo.name);
 
   DWORD64 uDisplacement(0);
-  if (SymFromInlineContext(
-          hProcess, address, inline_context,
-          &uDisplacement, pSym)) {
+  if (SymFromInlineContext(hProcess, address, inline_context, &uDisplacement,
+                           pSym)) {
     oss << " " << pSym->Name;
     if (uDisplacement != 0) {
-      LONG_PTR displacement =
-          static_cast<LONG_PTR>(
-              uDisplacement);
+      LONG_PTR displacement = static_cast<LONG_PTR>(uDisplacement);
       if (displacement < 0)
         oss << " - " << -displacement;
       else
@@ -244,17 +213,13 @@ std::string SimpleStackWalker::inlineToString(
   }
 
   // Finally any file/line number
-  IMAGEHLP_LINE64 lineInfo = {
-      sizeof(lineInfo)};
+  IMAGEHLP_LINE64 lineInfo = {sizeof(lineInfo)};
   DWORD dwDisplacement(0);
-  if (SymGetLineFromInlineContext(
-          hProcess, address, inline_context,
-          0, &dwDisplacement, &lineInfo)) {
-    oss << "   " << lineInfo.FileName << "("
-        << lineInfo.LineNumber << ")";
+  if (SymGetLineFromInlineContext(hProcess, address, inline_context, 0,
+                                  &dwDisplacement, &lineInfo)) {
+    oss << "   " << lineInfo.FileName << "(" << lineInfo.LineNumber << ")";
     if (dwDisplacement != 0) {
-      oss << " + " << dwDisplacement
-          << " byte"
+      oss << " + " << dwDisplacement << " byte"
           << (dwDisplacement == 1 ? "" : "s");
     }
   }
@@ -265,8 +230,7 @@ std::string SimpleStackWalker::inlineToString(
 ////////////////////////////////////////////////////////////////////////
 // StackTrace: try to trace the stack to the
 // given output
-void SimpleStackWalker::stackTrace(
-    HANDLE hThread, std::ostream &os) {
+void SimpleStackWalker::stackTrace(HANDLE hThread, std::ostream &os) {
   CONTEXT context = {0};
 
   context.ContextFlags = CONTEXT_FULL;
@@ -274,12 +238,12 @@ void SimpleStackWalker::stackTrace(
 
   return stackTrace(hThread, &context, os);
 }
-    
+
 ////////////////////////////////////////////////////////////////////////
 // StackTrace: try to trace the stack to the
 // given output using the given context
-void SimpleStackWalker::stackTrace(
-    HANDLE hThread, PCONTEXT context, std::ostream &os) {
+void SimpleStackWalker::stackTrace(HANDLE hThread, PCONTEXT context,
+                                   std::ostream &os) {
   STACKFRAME64 stackFrame = {0};
 
   stackFrame.AddrPC.Offset = context->Rip;
@@ -297,20 +261,16 @@ void SimpleStackWalker::stackTrace(
   // Detect loops with optimised stackframes
   DWORD64 lastFrame = 0;
 
-  while (::StackWalk64(
-      IMAGE_FILE_MACHINE_AMD64, hProcess,
-      hThread, &stackFrame, context, nullptr,
-      ::SymFunctionTableAccess64,
-      ::SymGetModuleBase64, nullptr)) {
+  while (::StackWalk64(IMAGE_FILE_MACHINE_AMD64, hProcess, hThread, &stackFrame,
+                       context, nullptr, ::SymFunctionTableAccess64,
+                       ::SymGetModuleBase64, nullptr)) {
     DWORD64 pc = stackFrame.AddrPC.Offset;
-    DWORD64 frame =
-        stackFrame.AddrFrame.Offset;
+    DWORD64 frame = stackFrame.AddrFrame.Offset;
     if (pc == 0) {
       os << "Null address\n";
       break;
     }
-    os << "0x" << (PVOID)frame << "  "
-       << addressToString(pc) << "\n";
+    os << "0x" << (PVOID)frame << "  " << addressToString(pc) << "\n";
     if (lastFrame >= frame) {
       os << "Stack frame out of "
             "sequence...\n";
@@ -321,22 +281,14 @@ void SimpleStackWalker::stackTrace(
     showVariablesAt(os, stackFrame, *context);
 
     // Expand any inline frames
-    if (const DWORD inline_count =
-            SymAddrIncludeInlineTrace(
-                hProcess, pc)) {
+    if (const DWORD inline_count = SymAddrIncludeInlineTrace(hProcess, pc)) {
       DWORD inline_context(0), frameIndex(0);
-      if (SymQueryInlineTrace(
-              hProcess, pc, 0, pc, pc,
-              &inline_context, &frameIndex)) {
-        for (DWORD i = 0; i < inline_count;
-             i++, inline_context++) {
-          os << "-- inline frame --  "
-             << inlineToString(pc,
-                               inline_context)
+      if (SymQueryInlineTrace(hProcess, pc, 0, pc, pc, &inline_context,
+                              &frameIndex)) {
+        for (DWORD i = 0; i < inline_count; i++, inline_context++) {
+          os << "-- inline frame --  " << inlineToString(pc, inline_context)
              << '\n';
-          showInlineVariablesAt(
-              os, stackFrame, *context,
-              inline_context);
+          showInlineVariablesAt(os, stackFrame, *context, inline_context);
         }
       }
     }
@@ -346,85 +298,63 @@ void SimpleStackWalker::stackTrace(
 }
 
 /////////////////////////////////////////////
-void SimpleStackWalker::showVariablesAt(
-    std::ostream &os,
-    const STACKFRAME64 &stackFrame,
-    const CONTEXT &context) const {
+void SimpleStackWalker::showVariablesAt(std::ostream &os,
+                                        const STACKFRAME64 &stackFrame,
+                                        const CONTEXT &context) const {
 
-  EnumLocalCallBack callback(
-      *this, os, stackFrame, context);
+  EnumLocalCallBack callback(*this, os, stackFrame, context);
 
   IMAGEHLP_STACK_FRAME imghlp_frame = {0};
-  imghlp_frame.InstructionOffset =
-      stackFrame.AddrPC.Offset;
+  imghlp_frame.InstructionOffset = stackFrame.AddrPC.Offset;
 
-  SymSetContext(hProcess, &imghlp_frame,
-                nullptr);
+  SymSetContext(hProcess, &imghlp_frame, nullptr);
 
-  SymEnumSymbols(
-      hProcess, 0, "*",
-      EnumLocalCallBack::enumSymbolsProc,
-      &callback);
+  SymEnumSymbols(hProcess, 0, "*", EnumLocalCallBack::enumSymbolsProc,
+                 &callback);
 }
 
 /////////////////////////////////////////////
-void SimpleStackWalker::showInlineVariablesAt(
-    std::ostream &os,
-    const STACKFRAME64 &stackFrame,
-    const CONTEXT &context,
-    DWORD inline_context) const {
-  if (SymSetScopeFromInlineContext(
-          hProcess, stackFrame.AddrPC.Offset,
-          inline_context)) {
-    EnumLocalCallBack callback(
-        *this, os, stackFrame, context);
+void SimpleStackWalker::showInlineVariablesAt(std::ostream &os,
+                                              const STACKFRAME64 &stackFrame,
+                                              const CONTEXT &context,
+                                              DWORD inline_context) const {
+  if (SymSetScopeFromInlineContext(hProcess, stackFrame.AddrPC.Offset,
+                                   inline_context)) {
+    EnumLocalCallBack callback(*this, os, stackFrame, context);
 
-    SymEnumSymbolsEx(
-        hProcess, 0, "*",
-        EnumLocalCallBack::enumSymbolsProc,
-        &callback, SYMENUM_OPTIONS_INLINE);
+    SymEnumSymbolsEx(hProcess, 0, "*", EnumLocalCallBack::enumSymbolsProc,
+                     &callback, SYMENUM_OPTIONS_INLINE);
   }
 }
 
 /////////////////////////////////////////////
 // Helper for SymGetTypeInfo
-bool SimpleStackWalker::getTypeInfo(
-    DWORD64 modBase, ULONG typeId,
-    IMAGEHLP_SYMBOL_TYPE_INFO getType,
-    PVOID pInfo) const {
-  return SymGetTypeInfo(hProcess, modBase,
-                        typeId, getType,
-                        pInfo);
+bool SimpleStackWalker::getTypeInfo(DWORD64 modBase, ULONG typeId,
+                                    IMAGEHLP_SYMBOL_TYPE_INFO getType,
+                                    PVOID pInfo) const {
+  return SymGetTypeInfo(hProcess, modBase, typeId, getType, pInfo);
 }
 
 /////////////////////////////////////////////
 // Helper for ReadProcessMemory
 bool SimpleStackWalker::readMemory(
-    LPCVOID
-        lpBaseAddress, // base of memory area
-    LPVOID lpBuffer,   // data buffer
-    SIZE_T nSize)
-    const // number of bytes to read
+    LPCVOID lpBaseAddress, // base of memory area
+    LPVOID lpBuffer,       // data buffer
+    SIZE_T nSize) const    // number of bytes to read
 {
-  return ReadProcessMemory(
-      hProcess, lpBaseAddress, lpBuffer,
-      nSize, 0);
+  return ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, 0);
 }
 
 /////////////////////////////////////////////
-void SimpleStackWalker::decorateName(
-    std::string &name, DWORD64 modBase,
-    DWORD typeIndex) const {
+void SimpleStackWalker::decorateName(std::string &name, DWORD64 modBase,
+                                     DWORD typeIndex) const {
   bool recurse{};
   enum SymTagEnum tag {};
-  getTypeInfo(modBase, typeIndex,
-              TI_GET_SYMTAG, &tag);
+  getTypeInfo(modBase, typeIndex, TI_GET_SYMTAG, &tag);
   switch (tag) {
   case SymTagUDT: {
     WCHAR *typeName{};
-    if (getTypeInfo(modBase, typeIndex,
-                    TI_GET_SYMNAME,
-                    &typeName)) {
+    if (getTypeInfo(modBase, typeIndex, TI_GET_SYMNAME, &typeName)) {
       name.insert(0, " ");
       name.insert(0, strFromWchar(typeName));
       // We must free typeName
@@ -435,13 +365,10 @@ void SimpleStackWalker::decorateName(
   case SymTagBaseType: {
     DWORD baseType{};
     ULONG64 length{};
-    getTypeInfo(modBase, typeIndex,
-                TI_GET_BASETYPE, &baseType);
-    getTypeInfo(modBase, typeIndex,
-                TI_GET_LENGTH, &length);
+    getTypeInfo(modBase, typeIndex, TI_GET_BASETYPE, &baseType);
+    getTypeInfo(modBase, typeIndex, TI_GET_LENGTH, &length);
     name.insert(0, " ");
-    name.insert(
-        0, getBaseType(baseType, length));
+    name.insert(0, getBaseType(baseType, length));
     break;
   }
   case SymTagPointerType: {
@@ -464,8 +391,7 @@ void SimpleStackWalker::decorateName(
       name += ")";
     }
     DWORD Count{};
-    getTypeInfo(modBase, typeIndex,
-                TI_GET_COUNT, &Count);
+    getTypeInfo(modBase, typeIndex, TI_GET_COUNT, &Count);
     name += "[";
     if (Count) {
       name += std::to_string(Count);
@@ -490,8 +416,7 @@ void SimpleStackWalker::decorateName(
 
   if (recurse) {
     DWORD ti{};
-    if (getTypeInfo(modBase, typeIndex,
-                    TI_GET_TYPEID, &ti)) {
+    if (getTypeInfo(modBase, typeIndex, TI_GET_TYPEID, &ti)) {
       decorateName(name, modBase, ti);
     }
   }
@@ -500,15 +425,12 @@ void SimpleStackWalker::decorateName(
 namespace {
 /////////////////////////////////////////////
 #if defined(STACK_ONLY)
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
-}
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {}
 
 /////////////////////////////////////////////
 #elif defined(NAMES_ONLY)
 // Simplest useful implementation
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {
   if (!(symInfo.Flags & SYMFLAG_LOCAL)) {
     // Ignore anything not a local variable
     return;
@@ -517,15 +439,13 @@ operator()(const SYMBOL_INFO &symInfo) const {
     // Ignore 'NULL' objects
     return;
   }
-  std::string name(symInfo.Name,
-                   symInfo.NameLen);
+  std::string name(symInfo.Name, symInfo.NameLen);
   opf << "  " << name << '\n';
 }
 
 /////////////////////////////////////////////
 #elif defined(NAMES_AND_TYPES)
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {
   if (!(symInfo.Flags & SYMFLAG_LOCAL)) {
     // Ignore anything not a local variable
     return;
@@ -534,17 +454,14 @@ operator()(const SYMBOL_INFO &symInfo) const {
     // Ignore 'NULL' objects
     return;
   }
-  std::string name(symInfo.Name,
-                   symInfo.NameLen);
-  eng.decorateName(name, symInfo.ModBase,
-                   symInfo.TypeIndex);
+  std::string name(symInfo.Name, symInfo.NameLen);
+  eng.decorateName(name, symInfo.ModBase, symInfo.TypeIndex);
   opf << "  " << name << '\n';
 }
 
 /////////////////////////////////////////////
 #elif defined(UNOPTIMISED_ONLY)
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {
   if (!(symInfo.Flags & SYMFLAG_LOCAL)) {
     // Ignore anything not a local variable
     return;
@@ -553,27 +470,20 @@ operator()(const SYMBOL_INFO &symInfo) const {
     // Ignore 'NULL' objects
     return;
   }
-  std::string name(symInfo.Name,
-                   symInfo.NameLen);
-  eng.decorateName(name, symInfo.ModBase,
-                   symInfo.TypeIndex);
+  std::string name(symInfo.Name, symInfo.NameLen);
+  eng.decorateName(name, symInfo.ModBase, symInfo.TypeIndex);
   opf << "  " << name;
   if (symInfo.Flags & SYMFLAG_REGREL) {
-    const RegInfo reg_info =
-        getRegInfo(symInfo.Register, context);
+    const RegInfo reg_info = getRegInfo(symInfo.Register, context);
     if (reg_info.name.empty()) {
-      opf << " [register '"
-          << symInfo.Register << "']";
+      opf << " [register '" << symInfo.Register << "']";
     } else {
-      opf << std::hex << " [" << reg_info.name
-          << " + " << symInfo.Address << "]";
-      if (symInfo.Size != 0 &&
-          symInfo.Size <= 8) {
+      opf << std::hex << " [" << reg_info.name << " + " << symInfo.Address
+          << "]";
+      if (symInfo.Size != 0 && symInfo.Size <= 8) {
         DWORD64 data{};
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, symInfo.Size);
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       symInfo.Size);
         opf << " = 0x" << data;
       }
       opf << std::dec;
@@ -584,8 +494,7 @@ operator()(const SYMBOL_INFO &symInfo) const {
 
 /////////////////////////////////////////////
 #elif defined(OPTIMISED)
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {
   if (!(symInfo.Flags & SYMFLAG_LOCAL)) {
     // Ignore anything not a local variable
     return;
@@ -594,41 +503,30 @@ operator()(const SYMBOL_INFO &symInfo) const {
     // Ignore 'NULL' objects
     return;
   }
-  std::string name(symInfo.Name,
-                   symInfo.NameLen);
-  eng.decorateName(name, symInfo.ModBase,
-                   symInfo.TypeIndex);
+  std::string name(symInfo.Name, symInfo.NameLen);
+  eng.decorateName(name, symInfo.ModBase, symInfo.TypeIndex);
   opf << "  " << name;
   if (symInfo.Flags & SYMFLAG_REGREL) {
-    const RegInfo reg_info =
-        getRegInfo(symInfo.Register, context);
+    const RegInfo reg_info = getRegInfo(symInfo.Register, context);
     if (reg_info.name.empty()) {
-      opf << " [register '"
-          << symInfo.Register << "']";
+      opf << " [register '" << symInfo.Register << "']";
     } else {
-      opf << std::hex << " [" << reg_info.name
-          << " + " << symInfo.Address << "]";
-      if (symInfo.Size != 0 &&
-          symInfo.Size <= 8) {
+      opf << std::hex << " [" << reg_info.name << " + " << symInfo.Address
+          << "]";
+      if (symInfo.Size != 0 && symInfo.Size <= 8) {
         DWORD64 data{};
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, symInfo.Size);
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       symInfo.Size);
         opf << " = 0x" << data;
       }
       opf << std::dec;
     }
-  } else if (symInfo.Flags &
-             SYMFLAG_REGISTER) {
-    const RegInfo reg_info =
-        getRegInfo(symInfo.Register, context);
+  } else if (symInfo.Flags & SYMFLAG_REGISTER) {
+    const RegInfo reg_info = getRegInfo(symInfo.Register, context);
     if (reg_info.name.empty()) {
-      opf << " (register '"
-          << symInfo.Register << "\')";
+      opf << " (register '" << symInfo.Register << "\')";
     } else {
-      opf << " (" << reg_info.name << ") = 0x"
-          << std::hex << reg_info.value
+      opf << " (" << reg_info.name << ") = 0x" << std::hex << reg_info.value
           << std::dec;
     }
   }
@@ -636,9 +534,8 @@ operator()(const SYMBOL_INFO &symInfo) const {
 }
 
 /////////////////////////////////////////////
-#else  // The complete solution
-void EnumLocalCallBack::
-operator()(const SYMBOL_INFO &symInfo) const {
+#else // The complete solution
+void EnumLocalCallBack::operator()(const SYMBOL_INFO &symInfo) const {
   if (!(symInfo.Flags & SYMFLAG_LOCAL)) {
     // Ignore anything not a local variable
     return;
@@ -647,102 +544,68 @@ operator()(const SYMBOL_INFO &symInfo) const {
     // Ignore 'NULL' objects
     return;
   }
-  std::string name(symInfo.Name,
-                   symInfo.NameLen);
-  eng.decorateName(name, symInfo.ModBase,
-                   symInfo.TypeIndex);
-  if ((symInfo.Flags & SYMFLAG_REGREL) ||
-      (symInfo.Flags & SYMFLAG_FRAMEREL)) {
+  std::string name(symInfo.Name, symInfo.NameLen);
+  eng.decorateName(name, symInfo.ModBase, symInfo.TypeIndex);
+  if ((symInfo.Flags & SYMFLAG_REGREL) || (symInfo.Flags & SYMFLAG_FRAMEREL)) {
     opf << "  " << name;
 
     const RegInfo reg_info =
         (symInfo.Flags & SYMFLAG_REGREL)
-            ? getRegInfo(symInfo.Register,
-                         context)
-            : RegInfo("frame",
-                      stackFrame.AddrFrame
-                          .Offset);
+            ? getRegInfo(symInfo.Register, context)
+            : RegInfo("frame", stackFrame.AddrFrame.Offset);
     if (reg_info.name.empty()) {
-      opf << " [register '"
-          << symInfo.Register << "']";
+      opf << " [register '" << symInfo.Register << "']";
     } else {
       opf << " [" << reg_info.name;
       if (symInfo.Address > 0x7fffffff)
-        opf << "-" << std::hex
-            << -(int)symInfo.Address
-            << std::dec;
+        opf << "-" << std::hex << -(int)symInfo.Address << std::dec;
       else
-        opf << "+" << std::hex
-            << (int)symInfo.Address
-            << std::dec;
+        opf << "+" << std::hex << (int)symInfo.Address << std::dec;
       opf << "]";
 
       if (symInfo.Size == sizeof(char)) {
         unsigned char data;
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, sizeof(data));
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       sizeof(data));
         if (isprint(data))
           opf << " = '" << data << '\'';
         else
           opf << " = " << (int)data;
-      } else if (symInfo.Size ==
-                 sizeof(short)) {
+      } else if (symInfo.Size == sizeof(short)) {
         unsigned short data;
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, sizeof(data));
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       sizeof(data));
         opf << " = " << data;
-      } else if (symInfo.Size ==
-                 sizeof(int)) {
+      } else if (symInfo.Size == sizeof(int)) {
         unsigned int data;
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, sizeof(data));
-        opf << " = 0x" << std::hex << data
-            << std::dec;
-      } else if ((symInfo.Size == 8) &&
-                 (name.compare(
-                      0, 6, "double") == 0)) {
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       sizeof(data));
+        opf << " = 0x" << std::hex << data << std::dec;
+      } else if ((symInfo.Size == 8) && (name.compare(0, 6, "double") == 0)) {
         double data;
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, sizeof(data));
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       sizeof(data));
         opf << " = " << data;
-      } else if ((symInfo.Size == 8) ||
-                 (symInfo.Size == 0)) {
+      } else if ((symInfo.Size == 8) || (symInfo.Size == 0)) {
         LONGLONG data;
-        eng.readMemory(
-            (PVOID)(reg_info.value +
-                    symInfo.Address),
-            &data, sizeof(data));
-        opf << " = 0x" << std::hex << data
-            << std::dec;
+        eng.readMemory((PVOID)(reg_info.value + symInfo.Address), &data,
+                       sizeof(data));
+        opf << " = 0x" << std::hex << data << std::dec;
       }
     }
     opf << std::endl;
-  } else if (symInfo.Flags &
-             SYMFLAG_REGISTER) {
+  } else if (symInfo.Flags & SYMFLAG_REGISTER) {
     opf << "  " << name;
-    const RegInfo reg_info =
-        getRegInfo(symInfo.Register, context);
+    const RegInfo reg_info = getRegInfo(symInfo.Register, context);
     if (reg_info.name.empty()) {
-      opf << " (register '"
-          << symInfo.Register << "\')";
+      opf << " (register '" << symInfo.Register << "\')";
     } else {
-      opf << " (" << reg_info.name << ") = 0x"
-          << std::hex << reg_info.value
+      opf << " (" << reg_info.name << ") = 0x" << std::hex << reg_info.value
           << std::dec;
     }
     opf << std::endl;
   } else {
-    opf << "  " << name
-        << " Flags: " << std::hex
-        << symInfo.Flags << std::dec
+    opf << "  " << name << " Flags: " << std::hex << symInfo.Flags << std::dec
         << std::endl;
   }
 }
@@ -751,8 +614,7 @@ operator()(const SYMBOL_INFO &symInfo) const {
 /////////////////////////////////////////////
 // Helper function: getBaseType maps PDB type
 // + length to C++ name
-std::string getBaseType(DWORD baseType,
-                        ULONG64 length) {
+std::string getBaseType(DWORD baseType, ULONG64 length) {
   static struct {
     DWORD baseType;
     ULONG64 length;
@@ -760,35 +622,26 @@ std::string getBaseType(DWORD baseType,
   } baseList[] = {
       // Table generated from dumping out
       // 'baseTypes.cpp'
-      {btNoType, 0,
-       "(null)"}, // Used for __$ReturnUdt
+      {btNoType, 0, "(null)"}, // Used for __$ReturnUdt
       {btVoid, 0, "void"},
       {btChar, sizeof(char), "char"},
       {btWChar, sizeof(wchar_t), "wchar_t"},
-      {btInt, sizeof(signed char),
-       "signed char"},
+      {btInt, sizeof(signed char), "signed char"},
       {btInt, sizeof(short), "short"},
       {btInt, sizeof(int), "int"},
       {btInt, sizeof(__int64), "__int64"},
-      {btUInt, sizeof(unsigned char),
-       "unsigned char"}, // also used for
-                         // 'bool' in VC6
-      {btUInt, sizeof(unsigned short),
-       "unsigned short"},
-      {btUInt, sizeof(unsigned int),
-       "unsigned int"},
-      {btUInt, sizeof(unsigned __int64),
-       "unsigned __int64"},
+      {btUInt, sizeof(unsigned char), "unsigned char"}, // also used for
+                                                        // 'bool' in VC6
+      {btUInt, sizeof(unsigned short), "unsigned short"},
+      {btUInt, sizeof(unsigned int), "unsigned int"},
+      {btUInt, sizeof(unsigned __int64), "unsigned __int64"},
       {btFloat, sizeof(float), "float"},
       {btFloat, sizeof(double), "double"},
-      {btFloat, sizeof(long double),
-       "long double"},
+      {btFloat, sizeof(long double), "long double"},
       // btBCD
-      {btBool, sizeof(bool),
-       "bool"}, // VC 7.x
+      {btBool, sizeof(bool), "bool"}, // VC 7.x
       {btLong, sizeof(long), "long"},
-      {btULong, sizeof(unsigned long),
-       "unsigned long"},
+      {btULong, sizeof(unsigned long), "unsigned long"},
       // btCurrency
       // btDate
       // btVariant
@@ -799,11 +652,8 @@ std::string getBaseType(DWORD baseType,
 
   };
 
-  for (int i = 0; i < sizeof(baseList) /
-                          sizeof(baseList[0]);
-       ++i) {
-    if ((baseType == baseList[i].baseType) &&
-        (length == baseList[i].length)) {
+  for (int i = 0; i < sizeof(baseList) / sizeof(baseList[0]); ++i) {
+    if ((baseType == baseList[i].baseType) && (length == baseList[i].length)) {
       return baseList[i].name;
     }
   }
@@ -811,18 +661,16 @@ std::string getBaseType(DWORD baseType,
   // Unlisted type - use the data values and
   // then fix the code (!)
   std::ostringstream oss;
-  oss << "pdb type: " << baseType << "/"
-      << (DWORD)length;
+  oss << "pdb type: " << baseType << "/" << (DWORD)length;
   return oss.str();
 }
 
 /////////////////////////////////////////////
 // Get register name and offset from the 'reg'
 // value supplied
-RegInfo getRegInfo(ULONG reg,
-                   const CONTEXT &context) {
-#define CASE(REG, NAME, SRC, MASK)           \
-  case CV_AMD64_##REG:                       \
+RegInfo getRegInfo(ULONG reg, const CONTEXT &context) {
+#define CASE(REG, NAME, SRC, MASK)                                             \
+  case CV_AMD64_##REG:                                                         \
     return RegInfo(NAME, context.SRC & MASK)
 
   switch (reg) {

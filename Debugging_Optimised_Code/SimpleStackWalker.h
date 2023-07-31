@@ -8,7 +8,7 @@
 
   @author Roger Orr <rogero@howzatt.co.uk>
 
-  Copyright &copy; 2004, 2011.
+  Copyright &copy; 2004, 2023.
   This software is distributed in the hope
   that it will be useful, but without WITHOUT
   ANY WARRANTY; without even the implied
@@ -26,11 +26,11 @@
   Comments and suggestions are always welcome.
   Please report bugs to rogero@howzatt.co.uk.
 
-  $Revision: 340 $
+  $Revision: 343 $
 */
 
 // clang-format off
-// $Id: SimpleStackWalker.h 340 2023-07-31 10:50:31Z roger $
+// $Id: SimpleStackWalker.h 343 2023-07-31 21:10:27Z roger $
 // clang-format on
 
 #include <iosfwd>
@@ -51,59 +51,43 @@ public:
 
   /** Provide a stack trace for the specified
    * thread in the target process */
-  void stackTrace(HANDLE hThread,
-                  std::ostream &os);
+  void stackTrace(HANDLE hThread, std::ostream &os);
 
   /** Provide a stack trace for the specified
-   * thread using the supplied context in the target process */
-  void stackTrace(HANDLE hThread,
-                  PCONTEXT context,
-                  std::ostream &os);
+   * thread using the supplied context in the
+   * target process */
+  void stackTrace(HANDLE hThread, PCONTEXT context, std::ostream &os);
 
   /** Wrppaer for SymGetTypeInfo */
-  bool getTypeInfo(
-      DWORD64 modBase, ULONG typeId,
-      IMAGEHLP_SYMBOL_TYPE_INFO getType,
-      PVOID pInfo) const;
+  bool getTypeInfo(DWORD64 modBase, ULONG typeId,
+                   IMAGEHLP_SYMBOL_TYPE_INFO getType, PVOID pInfo) const;
 
   /** Wrapper for ReadProcessMemory */
-  bool readMemory(
-      LPCVOID lpBaseAddress, // base of memory
-                             // area
-      LPVOID lpBuffer,       // data buffer
-      SIZE_T nSize) const;   // bytes to read
+  bool readMemory(LPCVOID lpBaseAddress, // base of memory
+                                         // area
+                  LPVOID lpBuffer,       // data buffer
+                  SIZE_T nSize) const;   // bytes to read
 
   /** Add type information to a name */
-  void decorateName(std::string &name,
-                    DWORD64 modBase,
-                    DWORD typeIndex) const;
+  void decorateName(std::string &name, DWORD64 modBase, DWORD typeIndex) const;
 
 private:
   /* don't copy or assign */
-  SimpleStackWalker(
-      SimpleStackWalker const &) = delete;
-  SimpleStackWalker &operator=(
-      SimpleStackWalker const &) = delete;
+  SimpleStackWalker(SimpleStackWalker const &) = delete;
+  SimpleStackWalker &operator=(SimpleStackWalker const &) = delete;
 
   /** Convert an address to a string */
-  std::string
-  addressToString(DWORD64 address) const;
+  std::string addressToString(DWORD64 address) const;
 
   /** Convert an inline address to a string */
-  std::string
-  inlineToString(DWORD64 address,
-                 DWORD inline_context) const;
+  std::string inlineToString(DWORD64 address, DWORD inline_context) const;
 
-  void showVariablesAt(
-      std::ostream &os,
-      const STACKFRAME64 &stackFrame,
-      const CONTEXT &context) const;
+  void showVariablesAt(std::ostream &os, const STACKFRAME64 &stackFrame,
+                       const CONTEXT &context) const;
 
-  void showInlineVariablesAt(
-      std::ostream &os,
-      const STACKFRAME64 &stackFrame,
-      const CONTEXT &context,
-      DWORD inline_context) const;
+  void showInlineVariablesAt(std::ostream &os, const STACKFRAME64 &stackFrame,
+                             const CONTEXT &context,
+                             DWORD inline_context) const;
 
   HANDLE hProcess;
 };
