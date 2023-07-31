@@ -268,18 +268,27 @@ std::string SimpleStackWalker::inlineToString(
 void SimpleStackWalker::stackTrace(
     HANDLE hThread, std::ostream &os) {
   CONTEXT context = {0};
-  STACKFRAME64 stackFrame = {0};
 
   context.ContextFlags = CONTEXT_FULL;
   GetThreadContext(hThread, &context);
 
-  stackFrame.AddrPC.Offset = context.Rip;
+  return stackTrace(hThread, &context, os);
+}
+
+////////////////////////////////////////////////////////////////////////
+// StackTrace: try to trace the stack to the
+// given output using the given context
+void SimpleStackWalker::stackTrace(
+    HANDLE hThread, PCONTEXT context, std::ostream &os) {
+  STACKFRAME64 stackFrame = {0};
+
+  stackFrame.AddrPC.Offset = context->Rip;
   stackFrame.AddrPC.Mode = AddrModeFlat;
 
-  stackFrame.AddrFrame.Offset = context.Rbp;
+  stackFrame.AddrFrame.Offset = context->Rbp;
   stackFrame.AddrFrame.Mode = AddrModeFlat;
 
-  stackFrame.AddrStack.Offset = context.Rsp;
+  stackFrame.AddrStack.Offset = context->Rsp;
   stackFrame.AddrStack.Mode = AddrModeFlat;
 
   os << "Frame               Code "
@@ -290,7 +299,7 @@ void SimpleStackWalker::stackTrace(
 
   while (::StackWalk64(
       IMAGE_FILE_MACHINE_AMD64, hProcess,
-      hThread, &stackFrame, &context, nullptr,
+      hThread, &stackFrame, context, nullptr,
       ::SymFunctionTableAccess64,
       ::SymGetModuleBase64, nullptr)) {
     DWORD64 pc = stackFrame.AddrPC.Offset;
@@ -309,7 +318,7 @@ void SimpleStackWalker::stackTrace(
     }
     lastFrame = frame;
 
-    showVariablesAt(os, stackFrame, context);
+    showVariablesAt(os, stackFrame, *context);
 
     // Expand any inline frames
     if (const DWORD inline_count =
@@ -326,7 +335,7 @@ void SimpleStackWalker::stackTrace(
                                inline_context)
              << '\n';
           showInlineVariablesAt(
-              os, stackFrame, context,
+              os, stackFrame, *context,
               inline_context);
         }
       }

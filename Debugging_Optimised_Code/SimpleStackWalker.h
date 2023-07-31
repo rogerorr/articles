@@ -54,6 +54,12 @@ public:
   void stackTrace(HANDLE hThread,
                   std::ostream &os);
 
+  /** Provide a stack trace for the specified
+   * thread using the supplied context in the target process */
+  void stackTrace(HANDLE hThread,
+                  PCONTEXT context,
+                  std::ostream &os);
+
   /** Wrppaer for SymGetTypeInfo */
   bool getTypeInfo(
       DWORD64 modBase, ULONG typeId,
