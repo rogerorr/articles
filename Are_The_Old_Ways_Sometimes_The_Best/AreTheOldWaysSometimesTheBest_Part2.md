@@ -12,6 +12,14 @@ In this part I examine a number of other C++ examples where such re-writes are a
 
 The code is deliberately kept minimal so the examples are clearer; in an actual code base they would typically span more lines.
 
+**Table of Contents**
+- [Streaming messages to/from memory](#streaming)
+- [Initializing objects](#initializing)
+- [The rule(s) of 'N'](#rule-of-n)
+- [Ways to initialize](#ways-to-initialize)
+- [Conclusion](#conclusion)
+
+<a id="streaming"></a>
 ## Streaming messages to/from memory
 
 The C++ "hello world" program used for years as the first program in C++ for beginners demonstrates the <i>streaming </i>idiom:
@@ -223,6 +231,7 @@ In my original presentation of this material at the ACCU Conference I pointed ou
 
 Since the conference Alisdair Meredith, as I had hoped, has picked up on this and produced a paper, P2867R1 ("Remove Deprecated strstreams From C++26") so we can hope that C++26 will finally remove the pre-C++98 facility. Thank you, Alisdair and Peter.
 
+<a id="initializing"></a>
 ## Initializing objects
 
 One of the important concepts in C++ is that of the constructor: ensuring that objects are correctly initialized.
@@ -336,6 +345,7 @@ In order to understand what one of the constructors does in the <i>original </i>
 
 However, since these techniques reduce duplication in the class as a whole the overall effect should be to <i>reduce</i> complication; and also make the class easier to change safely.
 
+<a id="rule-of-n"></a>
 ## The rule(s) of 'N'
 
 When designing a class, the decisions about providing constructors, destructors, and asignment operators are related. From the early days of C++ we have had the "rule of three", coined by Marshal Cline in 1991:
@@ -470,6 +480,7 @@ The best case is when N = 0 - "the rule of zero". We can, and should, make use o
 
 When moving older code to modern C++ it is an easy trap to simply add the "missing" move operations when you might do better refactoring the code to make the existing copy operations implicit and then letting the compiler generate all of these five special member functions for you.
 
+<a id="ways-to-initialize"></a>
 ## Ways to initialize
 
 There are many ways in C++ to initialise even a simple **integer** variable:
@@ -573,6 +584,7 @@ Be aware of the pitfalls.
 
 Be careful about "drive-by" changes in the name of consistency - there are some risks of subtly changing the meaning of an initialization expression during such a refactor.
 
+<a id="conclusion"></a>
 ## Conclusion
 
 The phrase "There's more than one way to do it" (aka TMTOWTDI) is true in many mature systems. It's good to keep up to date with the new ways to do what we already know how to do. However, there are various tradeoffs to make:
