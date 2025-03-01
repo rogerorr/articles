@@ -192,12 +192,12 @@ For example, by applying a .reg file with the folllowing contents:
 ```c++
 Windows Registry Editor Version 5.00
 
-[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Windows Error Reporting]
-"DontShowUI"=dword:00000000\f0
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\Windows Error Reporting]
+"DontShowUI"=dword:00000000
 ```
 (It is a sort of "double-negative" - explicitly setting don't show UI to 0 (off) enables showing the error reporting UI)
 
-Having done this, executing `HeapCorruption.exe 120`  from the command prompt produces a dialog box allowing us to attach a debugger to the crashing program:
+Having done this, and restarting Windows, executing `HeapCorruption.exe 120`  from the command prompt produces a dialog box allowing us to attach a debugger to the crashing program:
 
 ![JIT Debugger](JitDebugger.png)
 
